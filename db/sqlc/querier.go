@@ -18,6 +18,7 @@ type Querier interface {
 	DeleteProject(ctx context.Context, id int32) error
 	DeleteTask(ctx context.Context, id int32) error
 	DeleteUser(ctx context.Context, id int32) error
+	DeleteUserFromProject(ctx context.Context, arg DeleteUserFromProjectParams) error
 	DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTaskParams) error
 	GetProject(ctx context.Context, id int32) (Project, error)
 	GetProjectUsers(ctx context.Context, projectID int32) ([]Usersinproject, error)

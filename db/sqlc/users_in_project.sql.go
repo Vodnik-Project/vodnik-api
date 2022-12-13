@@ -29,6 +29,21 @@ func (q *Queries) AddUserToProject(ctx context.Context, arg AddUserToProjectPara
 	return i, err
 }
 
+const deleteUserFromProject = `-- name: DeleteUserFromProject :exec
+DELETE FROM usersinproject
+WHERE user_id = $1 AND project_id = $2
+`
+
+type DeleteUserFromProjectParams struct {
+	UserID    int32 `json:"user_id"`
+	ProjectID int32 `json:"project_id"`
+}
+
+func (q *Queries) DeleteUserFromProject(ctx context.Context, arg DeleteUserFromProjectParams) error {
+	_, err := q.exec(ctx, q.deleteUserFromProjectStmt, deleteUserFromProject, arg.UserID, arg.ProjectID)
+	return err
+}
+
 const getProjectUsers = `-- name: GetProjectUsers :many
 SELECT project_id, user_id, added_at FROM usersinproject
 WHERE project_id = $1
