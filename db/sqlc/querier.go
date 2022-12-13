@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	AddUserToProject(ctx context.Context, arg AddUserToProjectParams) (Usersinproject, error)
+	AddUserToTask(ctx context.Context, arg AddUserToTaskParams) (Usersintask, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
 	// TODO: auto time for beggining without input doesn't work.
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
@@ -17,13 +18,16 @@ type Querier interface {
 	DeleteProject(ctx context.Context, id int32) error
 	DeleteTask(ctx context.Context, id int32) error
 	DeleteUser(ctx context.Context, id int32) error
+	DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTaskParams) error
 	GetProject(ctx context.Context, id int32) (Project, error)
 	GetProjectUsers(ctx context.Context, projectID int32) ([]Usersinproject, error)
 	GetProjects(ctx context.Context, ownerID int32) ([]Project, error)
 	GetTask(ctx context.Context, id int32) (Task, error)
+	GetTaskUsers(ctx context.Context, taskID int32) ([]Usersintask, error)
 	GetTasks(ctx context.Context, projectID int32) ([]Task, error)
 	GetUser(ctx context.Context, arg GetUserParams) (User, error)
 	GetUserProjects(ctx context.Context, userID int32) ([]Usersinproject, error)
+	GetUserTasks(ctx context.Context, userID int32) ([]Usersintask, error)
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
 	// TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
 	UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error)
