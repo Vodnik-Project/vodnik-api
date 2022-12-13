@@ -14,7 +14,7 @@ INSERT INTO usersinproject (
     user_id, project_id
 ) VALUES (
     $1, $2
-) RETURNING project_id, user_id
+) RETURNING project_id, user_id, added_at
 `
 
 type AddUserToProjectParams struct {
@@ -25,12 +25,12 @@ type AddUserToProjectParams struct {
 func (q *Queries) AddUserToProject(ctx context.Context, arg AddUserToProjectParams) (Usersinproject, error) {
 	row := q.queryRow(ctx, q.addUserToProjectStmt, addUserToProject, arg.UserID, arg.ProjectID)
 	var i Usersinproject
-	err := row.Scan(&i.ProjectID, &i.UserID)
+	err := row.Scan(&i.ProjectID, &i.UserID, &i.AddedAt)
 	return i, err
 }
 
 const getProjectUsers = `-- name: GetProjectUsers :many
-SELECT project_id, user_id FROM usersinproject
+SELECT project_id, user_id, added_at FROM usersinproject
 WHERE project_id = $1
 `
 
@@ -43,7 +43,7 @@ func (q *Queries) GetProjectUsers(ctx context.Context, projectID int32) ([]Users
 	var items []Usersinproject
 	for rows.Next() {
 		var i Usersinproject
-		if err := rows.Scan(&i.ProjectID, &i.UserID); err != nil {
+		if err := rows.Scan(&i.ProjectID, &i.UserID, &i.AddedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -58,7 +58,7 @@ func (q *Queries) GetProjectUsers(ctx context.Context, projectID int32) ([]Users
 }
 
 const getUserProjects = `-- name: GetUserProjects :many
-SELECT project_id, user_id FROM usersinproject
+SELECT project_id, user_id, added_at FROM usersinproject
 WHERE user_id = $1
 `
 
@@ -71,7 +71,7 @@ func (q *Queries) GetUserProjects(ctx context.Context, userID int32) ([]Usersinp
 	var items []Usersinproject
 	for rows.Next() {
 		var i Usersinproject
-		if err := rows.Scan(&i.ProjectID, &i.UserID); err != nil {
+		if err := rows.Scan(&i.ProjectID, &i.UserID, &i.AddedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

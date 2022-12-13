@@ -46,11 +46,13 @@ type Usersetting struct {
 }
 
 type Usersinproject struct {
-	ProjectID int32 `json:"project_id"`
-	UserID    int32 `json:"user_id"`
+	ProjectID int32        `json:"project_id"`
+	UserID    int32        `json:"user_id"`
+	AddedAt   sql.NullTime `json:"added_at"`
 }
 
 type Usersintask struct {
-	TaskID int32 `json:"task_id"`
-	UserID int32 `json:"user_id"`
+	TaskID  int32        `json:"task_id"`
+	UserID  int32        `json:"user_id"`
+	AddedAt sql.NullTime `json:"added_at"`
 }

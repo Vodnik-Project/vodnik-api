@@ -36,12 +36,14 @@ CREATE TABLE "tasks" (
 
 CREATE TABLE "usersinproject" (
   "project_id" serial NOT NULL,
-  "user_id" serial NOT NULL
+  "user_id" serial NOT NULL,
+  "added_at" timestamptz DEFAULT (now())
 );
 
 CREATE TABLE "usersintask" (
   "task_id" serial NOT NULL,
-  "user_id" serial NOT NULL
+  "user_id" serial NOT NULL,
+  "added_at" timestamptz DEFAULT (now())
 );
 
 CREATE INDEX ON "users" ("id");
