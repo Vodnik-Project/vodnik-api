@@ -11,6 +11,7 @@ import (
 )
 
 const createTask = `-- name: CreateTask :one
+
 INSERT INTO tasks (
     project_id, title, info, tag, created_by, beggining, deadline, color
 ) VALUES (
@@ -30,6 +31,7 @@ type CreateTaskParams struct {
 	Color     string       `json:"color"`
 }
 
+// TODO: auto time for beggining without input doesn't work.
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
 	row := q.queryRow(ctx, q.createTaskStmt, createTask,
 		arg.ProjectID,
