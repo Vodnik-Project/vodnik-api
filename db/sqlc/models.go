@@ -10,33 +10,33 @@ import (
 )
 
 type Project struct {
-	ID        int32          `json:"id"`
-	Title     string         `json:"title"`
-	Info      sql.NullString `json:"info"`
-	OwnerID   int32          `json:"owner_id"`
-	CreatedAt time.Time      `json:"created_at"`
+	ID        int32     `json:"id"`
+	Title     string    `json:"title"`
+	Info      string    `json:"info"`
+	OwnerID   int32     `json:"owner_id"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Task struct {
-	ID        int32          `json:"id"`
-	ProjectID int32          `json:"project_id"`
-	Title     string         `json:"title"`
-	Info      sql.NullString `json:"info"`
-	Tag       sql.NullString `json:"tag"`
-	CreatedAt sql.NullTime   `json:"created_at"`
-	Beggining sql.NullTime   `json:"beggining"`
-	Deadline  sql.NullTime   `json:"deadline"`
-	Color     sql.NullString `json:"color"`
+	ID        int32        `json:"id"`
+	ProjectID int32        `json:"project_id"`
+	Title     string       `json:"title"`
+	Info      string       `json:"info"`
+	Tag       string       `json:"tag"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	Beggining sql.NullTime `json:"beggining"`
+	Deadline  sql.NullTime `json:"deadline"`
+	Color     string       `json:"color"`
 }
 
 type User struct {
-	ID           int32          `json:"id"`
-	Username     string         `json:"username"`
-	Email        string         `json:"email"`
-	PassHash     string         `json:"pass_hash"`
-	JoinDate     time.Time      `json:"join_date"`
-	Bio          sql.NullString `json:"bio"`
-	ProfilePhoto sql.NullString `json:"profile_photo"`
+	ID           int32     `json:"id"`
+	Username     string    `json:"username"`
+	Email        string    `json:"email"`
+	PassHash     string    `json:"pass_hash"`
+	JoinDate     time.Time `json:"join_date"`
+	Bio          string    `json:"bio"`
+	ProfilePhoto string    `json:"profile_photo"`
 }
 
 type Usersetting struct {
