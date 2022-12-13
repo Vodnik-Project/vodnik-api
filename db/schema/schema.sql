@@ -77,3 +77,7 @@ ALTER TABLE "usersinproject" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id
 ALTER TABLE "usersintask" ADD FOREIGN KEY ("task_id") REFERENCES "tasks" ("id");
 
 ALTER TABLE "usersintask" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+
+ALTER TABLE "usersinproject" ADD CONSTRAINT "uq_usersinproject" UNIQUE("project_id", "user_id");
+
+ALTER TABLE "usersintask" ADD CONSTRAINT "uq_usersintask" UNIQUE("task_id", "user_id");
