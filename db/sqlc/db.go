@@ -27,11 +27,17 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createProjectStmt, err = db.PrepareContext(ctx, createProject); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateProject: %w", err)
 	}
+	if q.createTaskStmt, err = db.PrepareContext(ctx, createTask); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateTask: %w", err)
+	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
 	if q.deleteProjectStmt, err = db.PrepareContext(ctx, deleteProject); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteProject: %w", err)
+	}
+	if q.deleteTaskStmt, err = db.PrepareContext(ctx, deleteTask); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteTask: %w", err)
 	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
@@ -42,11 +48,20 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getProjectsStmt, err = db.PrepareContext(ctx, getProjects); err != nil {
 		return nil, fmt.Errorf("error preparing query GetProjects: %w", err)
 	}
+	if q.getTaskStmt, err = db.PrepareContext(ctx, getTask); err != nil {
+		return nil, fmt.Errorf("error preparing query GetTask: %w", err)
+	}
+	if q.getTasksStmt, err = db.PrepareContext(ctx, getTasks); err != nil {
+		return nil, fmt.Errorf("error preparing query GetTasks: %w", err)
+	}
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
 	}
 	if q.updateProjectStmt, err = db.PrepareContext(ctx, updateProject); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateProject: %w", err)
+	}
+	if q.updateTaskStmt, err = db.PrepareContext(ctx, updateTask); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateTask: %w", err)
 	}
 	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
@@ -61,6 +76,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createProjectStmt: %w", cerr)
 		}
 	}
+	if q.createTaskStmt != nil {
+		if cerr := q.createTaskStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createTaskStmt: %w", cerr)
+		}
+	}
 	if q.createUserStmt != nil {
 		if cerr := q.createUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
@@ -69,6 +89,11 @@ func (q *Queries) Close() error {
 	if q.deleteProjectStmt != nil {
 		if cerr := q.deleteProjectStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteProjectStmt: %w", cerr)
+		}
+	}
+	if q.deleteTaskStmt != nil {
+		if cerr := q.deleteTaskStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteTaskStmt: %w", cerr)
 		}
 	}
 	if q.deleteUserStmt != nil {
@@ -86,6 +111,16 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getProjectsStmt: %w", cerr)
 		}
 	}
+	if q.getTaskStmt != nil {
+		if cerr := q.getTaskStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getTaskStmt: %w", cerr)
+		}
+	}
+	if q.getTasksStmt != nil {
+		if cerr := q.getTasksStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getTasksStmt: %w", cerr)
+		}
+	}
 	if q.getUserStmt != nil {
 		if cerr := q.getUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
@@ -94,6 +129,11 @@ func (q *Queries) Close() error {
 	if q.updateProjectStmt != nil {
 		if cerr := q.updateProjectStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateProjectStmt: %w", cerr)
+		}
+	}
+	if q.updateTaskStmt != nil {
+		if cerr := q.updateTaskStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateTaskStmt: %w", cerr)
 		}
 	}
 	if q.updateUserStmt != nil {
@@ -141,13 +181,18 @@ type Queries struct {
 	db                DBTX
 	tx                *sql.Tx
 	createProjectStmt *sql.Stmt
+	createTaskStmt    *sql.Stmt
 	createUserStmt    *sql.Stmt
 	deleteProjectStmt *sql.Stmt
+	deleteTaskStmt    *sql.Stmt
 	deleteUserStmt    *sql.Stmt
 	getProjectStmt    *sql.Stmt
 	getProjectsStmt   *sql.Stmt
+	getTaskStmt       *sql.Stmt
+	getTasksStmt      *sql.Stmt
 	getUserStmt       *sql.Stmt
 	updateProjectStmt *sql.Stmt
+	updateTaskStmt    *sql.Stmt
 	updateUserStmt    *sql.Stmt
 }
 
@@ -156,13 +201,18 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                tx,
 		tx:                tx,
 		createProjectStmt: q.createProjectStmt,
+		createTaskStmt:    q.createTaskStmt,
 		createUserStmt:    q.createUserStmt,
 		deleteProjectStmt: q.deleteProjectStmt,
+		deleteTaskStmt:    q.deleteTaskStmt,
 		deleteUserStmt:    q.deleteUserStmt,
 		getProjectStmt:    q.getProjectStmt,
 		getProjectsStmt:   q.getProjectsStmt,
+		getTaskStmt:       q.getTaskStmt,
+		getTasksStmt:      q.getTasksStmt,
 		getUserStmt:       q.getUserStmt,
 		updateProjectStmt: q.updateProjectStmt,
+		updateTaskStmt:    q.updateTaskStmt,
 		updateUserStmt:    q.updateUserStmt,
 	}
 }

@@ -10,13 +10,19 @@ import (
 
 type Querier interface {
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
+	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteProject(ctx context.Context, id int32) error
+	DeleteTask(ctx context.Context, id int32) error
 	DeleteUser(ctx context.Context, id int32) error
 	GetProject(ctx context.Context, id int32) (Project, error)
 	GetProjects(ctx context.Context, ownerID int32) ([]Project, error)
+	GetTask(ctx context.Context, id int32) (Task, error)
+	GetTasks(ctx context.Context, projectID int32) ([]Task, error)
 	GetUser(ctx context.Context, arg GetUserParams) (User, error)
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
+	// TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
+	UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
