@@ -24,14 +24,29 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.createProjectStmt, err = db.PrepareContext(ctx, createProject); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateProject: %w", err)
+	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
+	}
+	if q.deleteProjectStmt, err = db.PrepareContext(ctx, deleteProject); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteProject: %w", err)
 	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
+	if q.getProjectStmt, err = db.PrepareContext(ctx, getProject); err != nil {
+		return nil, fmt.Errorf("error preparing query GetProject: %w", err)
+	}
+	if q.getProjectsStmt, err = db.PrepareContext(ctx, getProjects); err != nil {
+		return nil, fmt.Errorf("error preparing query GetProjects: %w", err)
+	}
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
+	}
+	if q.updateProjectStmt, err = db.PrepareContext(ctx, updateProject); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateProject: %w", err)
 	}
 	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
@@ -41,9 +56,19 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
+	if q.createProjectStmt != nil {
+		if cerr := q.createProjectStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createProjectStmt: %w", cerr)
+		}
+	}
 	if q.createUserStmt != nil {
 		if cerr := q.createUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
+		}
+	}
+	if q.deleteProjectStmt != nil {
+		if cerr := q.deleteProjectStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteProjectStmt: %w", cerr)
 		}
 	}
 	if q.deleteUserStmt != nil {
@@ -51,9 +76,24 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
 		}
 	}
+	if q.getProjectStmt != nil {
+		if cerr := q.getProjectStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getProjectStmt: %w", cerr)
+		}
+	}
+	if q.getProjectsStmt != nil {
+		if cerr := q.getProjectsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getProjectsStmt: %w", cerr)
+		}
+	}
 	if q.getUserStmt != nil {
 		if cerr := q.getUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
+		}
+	}
+	if q.updateProjectStmt != nil {
+		if cerr := q.updateProjectStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateProjectStmt: %w", cerr)
 		}
 	}
 	if q.updateUserStmt != nil {
@@ -98,21 +138,31 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db             DBTX
-	tx             *sql.Tx
-	createUserStmt *sql.Stmt
-	deleteUserStmt *sql.Stmt
-	getUserStmt    *sql.Stmt
-	updateUserStmt *sql.Stmt
+	db                DBTX
+	tx                *sql.Tx
+	createProjectStmt *sql.Stmt
+	createUserStmt    *sql.Stmt
+	deleteProjectStmt *sql.Stmt
+	deleteUserStmt    *sql.Stmt
+	getProjectStmt    *sql.Stmt
+	getProjectsStmt   *sql.Stmt
+	getUserStmt       *sql.Stmt
+	updateProjectStmt *sql.Stmt
+	updateUserStmt    *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:             tx,
-		tx:             tx,
-		createUserStmt: q.createUserStmt,
-		deleteUserStmt: q.deleteUserStmt,
-		getUserStmt:    q.getUserStmt,
-		updateUserStmt: q.updateUserStmt,
+		db:                tx,
+		tx:                tx,
+		createProjectStmt: q.createProjectStmt,
+		createUserStmt:    q.createUserStmt,
+		deleteProjectStmt: q.deleteProjectStmt,
+		deleteUserStmt:    q.deleteUserStmt,
+		getProjectStmt:    q.getProjectStmt,
+		getProjectsStmt:   q.getProjectsStmt,
+		getUserStmt:       q.getUserStmt,
+		updateProjectStmt: q.updateProjectStmt,
+		updateUserStmt:    q.updateUserStmt,
 	}
 }

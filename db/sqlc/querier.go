@@ -9,9 +9,14 @@ import (
 )
 
 type Querier interface {
+	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteProject(ctx context.Context, id int32) error
 	DeleteUser(ctx context.Context, id int32) error
+	GetProject(ctx context.Context, id int32) (Project, error)
+	GetProjects(ctx context.Context, ownerID int32) ([]Project, error)
 	GetUser(ctx context.Context, arg GetUserParams) (User, error)
+	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
