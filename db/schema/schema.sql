@@ -53,6 +53,8 @@ CREATE INDEX ON "usersetting" ("id");
 
 CREATE INDEX ON "projects" ("id");
 
+CREATE INDEX ON "projects" ("owner_id");
+
 CREATE INDEX ON "tasks" ("id");
 
 CREATE INDEX ON "tasks" ("project_id");
