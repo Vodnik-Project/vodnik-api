@@ -10,11 +10,11 @@ import (
 )
 
 type Project struct {
-	ID        int32     `json:"id"`
-	Title     string    `json:"title"`
-	Info      string    `json:"info"`
-	OwnerID   int32     `json:"owner_id"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int32        `json:"id"`
+	Title     string       `json:"title"`
+	Info      string       `json:"info"`
+	OwnerID   int32        `json:"owner_id"`
+	CreatedAt sql.NullTime `json:"created_at"`
 }
 
 type Task struct {
@@ -23,6 +23,7 @@ type Task struct {
 	Title     string       `json:"title"`
 	Info      string       `json:"info"`
 	Tag       string       `json:"tag"`
+	CreatedBy int32        `json:"created_by"`
 	CreatedAt sql.NullTime `json:"created_at"`
 	Beggining sql.NullTime `json:"beggining"`
 	Deadline  sql.NullTime `json:"deadline"`

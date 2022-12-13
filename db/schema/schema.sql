@@ -18,7 +18,7 @@ CREATE TABLE "projects" (
   "title" varchar NOT NULL,
   "info" varchar,
   "owner_id" serial NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+  "created_at" timestamptz DEFAULT (now())
 );
 
 CREATE TABLE "tasks" (
@@ -27,6 +27,7 @@ CREATE TABLE "tasks" (
   "title" varchar NOT NULL,
   "info" varchar,
   "tag" varchar,
+  "created_by" serial NOT NULL,
   "created_at" timestamptz DEFAULT (now()),
   "beggining" timestamptz DEFAULT (now()),
   "deadline" timestamptz,
@@ -64,6 +65,8 @@ ALTER TABLE "usersetting" ADD FOREIGN KEY ("id") REFERENCES "users" ("id");
 ALTER TABLE "projects" ADD FOREIGN KEY ("owner_id") REFERENCES "users" ("id");
 
 ALTER TABLE "tasks" ADD FOREIGN KEY ("project_id") REFERENCES "projects" ("id");
+
+ALTER TABLE "tasks" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("id");
 
 ALTER TABLE "usersinproject" ADD FOREIGN KEY ("project_id") REFERENCES "projects" ("id");
 
