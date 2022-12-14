@@ -9,8 +9,8 @@ import (
 	_ "github.com/jackc/pgx/stdlib"
 )
 
-var TestDB *sql.DB
-var TestQueries *Queries
+var testDB *sql.DB
+var testQueries *Queries
 
 func TestMain(t *testing.T) {
 	config, err := util.LoadConfig("../..")
@@ -18,10 +18,10 @@ func TestMain(t *testing.T) {
 		log.Printf("can't load env variables: %v", err)
 		return
 	}
-	TestDB, err = sql.Open(config.DB_DRIVER, config.DB_SOURCE_TEST)
+	testDB, err = sql.Open(config.DB_DRIVER, config.DB_SOURCE_TEST)
 	if err != nil {
 		log.Printf("can't open database: %v", err)
 		return
 	}
-	TestQueries = New(TestDB)
+	testQueries = New(testDB)
 }
