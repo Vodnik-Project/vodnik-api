@@ -21,14 +21,14 @@ RETURNING id, project_id, title, info, tag, created_by, created_at, beggining, d
 `
 
 type CreateTaskParams struct {
-	ProjectID int32        `json:"project_id"`
-	Title     string       `json:"title"`
-	Info      string       `json:"info"`
-	Tag       string       `json:"tag"`
-	CreatedBy int32        `json:"created_by"`
-	Beggining sql.NullTime `json:"beggining"`
-	Deadline  sql.NullTime `json:"deadline"`
-	Color     string       `json:"color"`
+	ProjectID int32          `json:"project_id"`
+	Title     string         `json:"title"`
+	Info      sql.NullString `json:"info"`
+	Tag       sql.NullString `json:"tag"`
+	CreatedBy int32          `json:"created_by"`
+	Beggining sql.NullTime   `json:"beggining"`
+	Deadline  sql.NullTime   `json:"deadline"`
+	Color     sql.NullString `json:"color"`
 }
 
 // TODO: auto time for beggining without input doesn't work.

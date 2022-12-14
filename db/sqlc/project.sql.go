@@ -7,6 +7,7 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createProject = `-- name: CreateProject :one
@@ -19,9 +20,9 @@ RETURNING id, title, info, owner_id, created_at
 `
 
 type CreateProjectParams struct {
-	Title   string `json:"title"`
-	Info    string `json:"info"`
-	OwnerID int32  `json:"owner_id"`
+	Title   string         `json:"title"`
+	Info    sql.NullString `json:"info"`
+	OwnerID int32          `json:"owner_id"`
 }
 
 func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
