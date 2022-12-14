@@ -15,4 +15,4 @@ dropdbtest:
 test:
 	go test -v --cover ./...
 
-.PHONY: env createdb dbschema
+.PHONY: env createdb createdbtest dbschema dbschematest dropdb dropdbtest test
