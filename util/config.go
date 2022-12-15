@@ -13,6 +13,7 @@ type Config struct {
 	DB_USER        string
 	DB_NAME        string
 	DB_NAME_TEST   string
+	SERVER_PORT    string
 }
 
 func LoadConfig(path string) (config Config, err error) {
