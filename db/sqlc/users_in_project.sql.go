@@ -7,6 +7,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const addUserToProject = `-- name: AddUserToProject :one
@@ -18,8 +20,8 @@ INSERT INTO usersinproject (
 `
 
 type AddUserToProjectParams struct {
-	UserID    int32 `json:"user_id"`
-	ProjectID int32 `json:"project_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	ProjectID uuid.UUID `json:"project_id"`
 }
 
 func (q *Queries) AddUserToProject(ctx context.Context, arg AddUserToProjectParams) (Usersinproject, error) {
@@ -35,8 +37,8 @@ WHERE user_id = $1 AND project_id = $2
 `
 
 type DeleteUserFromProjectParams struct {
-	UserID    int32 `json:"user_id"`
-	ProjectID int32 `json:"project_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	ProjectID uuid.UUID `json:"project_id"`
 }
 
 func (q *Queries) DeleteUserFromProject(ctx context.Context, arg DeleteUserFromProjectParams) error {
@@ -49,7 +51,7 @@ SELECT project_id, user_id, added_at FROM usersinproject
 WHERE user_id = $1
 `
 
-func (q *Queries) GetProjectsOfUser(ctx context.Context, userID int32) ([]Usersinproject, error) {
+func (q *Queries) GetProjectsOfUser(ctx context.Context, userID uuid.UUID) ([]Usersinproject, error) {
 	rows, err := q.query(ctx, q.getProjectsOfUserStmt, getProjectsOfUser, userID)
 	if err != nil {
 		return nil, err
@@ -77,7 +79,7 @@ SELECT project_id, user_id, added_at FROM usersinproject
 WHERE project_id = $1
 `
 
-func (q *Queries) GetUsersOfProject(ctx context.Context, projectID int32) ([]Usersinproject, error) {
+func (q *Queries) GetUsersOfProject(ctx context.Context, projectID uuid.UUID) ([]Usersinproject, error) {
 	rows, err := q.query(ctx, q.getUsersOfProjectStmt, getUsersOfProject, projectID)
 	if err != nil {
 		return nil, err

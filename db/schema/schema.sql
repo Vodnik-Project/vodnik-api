@@ -1,5 +1,7 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE "users" (
-  "id" serial PRIMARY KEY,
+  "user_id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   "username" varchar UNIQUE NOT NULL,
   "email" varchar UNIQUE NOT NULL,
   "pass_hash" varchar NOT NULL,
@@ -9,25 +11,25 @@ CREATE TABLE "users" (
 );
 
 CREATE TABLE "usersetting" (
-  "id" serial PRIMARY KEY,
+  "user_id" uuid PRIMARY KEY,
   "darkmode" bool
 );
 
 CREATE TABLE "projects" (
-  "id" serial PRIMARY KEY,
+  "project_id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   "title" varchar NOT NULL,
   "info" varchar,
-  "owner_id" serial NOT NULL,
+  "owner_id" uuid NOT NULL,
   "created_at" timestamptz DEFAULT (now())
 );
 
 CREATE TABLE "tasks" (
-  "id" serial PRIMARY KEY,
-  "project_id" serial NOT NULL,
+  "task_id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  "project_id" uuid NOT NULL,
   "title" varchar NOT NULL,
   "info" varchar,
   "tag" varchar,
-  "created_by" serial NOT NULL,
+  "created_by" uuid NOT NULL,
   "created_at" timestamptz DEFAULT (now()),
   "beggining" timestamptz DEFAULT (now()),
   "deadline" timestamptz,
@@ -35,48 +37,48 @@ CREATE TABLE "tasks" (
 );
 
 CREATE TABLE "usersinproject" (
-  "project_id" serial NOT NULL,
-  "user_id" serial NOT NULL,
+  "project_id" uuid NOT NULL,
+  "user_id" uuid NOT NULL,
   "added_at" timestamptz DEFAULT (now())
 );
 
 CREATE TABLE "usersintask" (
-  "task_id" serial NOT NULL,
-  "user_id" serial NOT NULL,
+  "task_id" uuid NOT NULL,
+  "user_id" uuid NOT NULL,
   "added_at" timestamptz DEFAULT (now())
 );
 
-CREATE INDEX ON "users" ("id");
+CREATE INDEX ON "users" ("user_id");
 
 CREATE INDEX ON "users" ("username");
 
 CREATE INDEX ON "users" ("email");
 
-CREATE INDEX ON "usersetting" ("id");
+CREATE INDEX ON "usersetting" ("user_id");
 
-CREATE INDEX ON "projects" ("id");
+CREATE INDEX ON "projects" ("project_id");
 
 CREATE INDEX ON "projects" ("owner_id");
 
-CREATE INDEX ON "tasks" ("id");
+CREATE INDEX ON "tasks" ("task_id");
 
 CREATE INDEX ON "tasks" ("project_id");
 
-ALTER TABLE "usersetting" ADD FOREIGN KEY ("id") REFERENCES "users" ("id");
+ALTER TABLE "usersetting" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
 
-ALTER TABLE "projects" ADD FOREIGN KEY ("owner_id") REFERENCES "users" ("id");
+ALTER TABLE "projects" ADD FOREIGN KEY ("owner_id") REFERENCES "users" ("user_id");
 
-ALTER TABLE "tasks" ADD FOREIGN KEY ("project_id") REFERENCES "projects" ("id");
+ALTER TABLE "tasks" ADD FOREIGN KEY ("project_id") REFERENCES "projects" ("project_id");
 
-ALTER TABLE "tasks" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("id");
+ALTER TABLE "tasks" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("user_id");
 
-ALTER TABLE "usersinproject" ADD FOREIGN KEY ("project_id") REFERENCES "projects" ("id");
+ALTER TABLE "usersinproject" ADD FOREIGN KEY ("project_id") REFERENCES "projects" ("project_id");
 
-ALTER TABLE "usersinproject" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "usersinproject" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
 
-ALTER TABLE "usersintask" ADD FOREIGN KEY ("task_id") REFERENCES "tasks" ("id");
+ALTER TABLE "usersintask" ADD FOREIGN KEY ("task_id") REFERENCES "tasks" ("task_id");
 
-ALTER TABLE "usersintask" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "usersintask" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
 
 ALTER TABLE "usersinproject" ADD CONSTRAINT "uq_usersinproject" UNIQUE("project_id", "user_id");
 

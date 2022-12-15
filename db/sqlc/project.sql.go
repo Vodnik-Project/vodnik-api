@@ -8,28 +8,30 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createProject = `-- name: CreateProject :one
 INSERT INTO projects (
     title, info, owner_id
 ) VALUES (
-    $1, $2, $3
+  $1, $2, $3
 )
-RETURNING id, title, info, owner_id, created_at
+RETURNING project_id, title, info, owner_id, created_at
 `
 
 type CreateProjectParams struct {
 	Title   string         `json:"title"`
 	Info    sql.NullString `json:"info"`
-	OwnerID int32          `json:"owner_id"`
+	OwnerID uuid.UUID      `json:"owner_id"`
 }
 
 func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
 	row := q.queryRow(ctx, q.createProjectStmt, createProject, arg.Title, arg.Info, arg.OwnerID)
 	var i Project
 	err := row.Scan(
-		&i.ID,
+		&i.ProjectID,
 		&i.Title,
 		&i.Info,
 		&i.OwnerID,
@@ -40,24 +42,24 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 
 const deleteProject = `-- name: DeleteProject :exec
 DELETE FROM projects
-WHERE id = $1
+WHERE project_id = $1
 `
 
-func (q *Queries) DeleteProject(ctx context.Context, id int32) error {
-	_, err := q.exec(ctx, q.deleteProjectStmt, deleteProject, id)
+func (q *Queries) DeleteProject(ctx context.Context, projectID uuid.UUID) error {
+	_, err := q.exec(ctx, q.deleteProjectStmt, deleteProject, projectID)
 	return err
 }
 
 const getProjectData = `-- name: GetProjectData :one
-SELECT id, title, info, owner_id, created_at FROM projects
-WHERE id = $1
+SELECT project_id, title, info, owner_id, created_at FROM projects
+WHERE project_id = $1
 `
 
-func (q *Queries) GetProjectData(ctx context.Context, id int32) (Project, error) {
-	row := q.queryRow(ctx, q.getProjectDataStmt, getProjectData, id)
+func (q *Queries) GetProjectData(ctx context.Context, projectID uuid.UUID) (Project, error) {
+	row := q.queryRow(ctx, q.getProjectDataStmt, getProjectData, projectID)
 	var i Project
 	err := row.Scan(
-		&i.ID,
+		&i.ProjectID,
 		&i.Title,
 		&i.Info,
 		&i.OwnerID,
@@ -67,11 +69,11 @@ func (q *Queries) GetProjectData(ctx context.Context, id int32) (Project, error)
 }
 
 const getProjectsByUserId = `-- name: GetProjectsByUserId :many
-SELECT id, title, info, owner_id, created_at FROM projects
+SELECT project_id, title, info, owner_id, created_at FROM projects
 WHERE owner_id = $1
 `
 
-func (q *Queries) GetProjectsByUserId(ctx context.Context, ownerID int32) ([]Project, error) {
+func (q *Queries) GetProjectsByUserId(ctx context.Context, ownerID uuid.UUID) ([]Project, error) {
 	rows, err := q.query(ctx, q.getProjectsByUserIdStmt, getProjectsByUserId, ownerID)
 	if err != nil {
 		return nil, err
@@ -81,7 +83,7 @@ func (q *Queries) GetProjectsByUserId(ctx context.Context, ownerID int32) ([]Pro
 	for rows.Next() {
 		var i Project
 		if err := rows.Scan(
-			&i.ID,
+			&i.ProjectID,
 			&i.Title,
 			&i.Info,
 			&i.OwnerID,
@@ -104,21 +106,21 @@ const updateProject = `-- name: UpdateProject :one
 UPDATE projects SET
   title = COALESCE(NULLIF($1, 'NULL'), title),
   info = COALESCE(NULLIF($2, 'NULL'), info)
-WHERE id = $3
-RETURNING id, title, info, owner_id, created_at
+WHERE project_id = $3
+RETURNING project_id, title, info, owner_id, created_at
 `
 
 type UpdateProjectParams struct {
-	Title interface{} `json:"title"`
-	Info  interface{} `json:"info"`
-	ID    int32       `json:"id"`
+	Title     interface{} `json:"title"`
+	Info      interface{} `json:"info"`
+	ProjectID uuid.UUID   `json:"project_id"`
 }
 
 func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error) {
-	row := q.queryRow(ctx, q.updateProjectStmt, updateProject, arg.Title, arg.Info, arg.ID)
+	row := q.queryRow(ctx, q.updateProjectStmt, updateProject, arg.Title, arg.Info, arg.ProjectID)
 	var i Project
 	err := row.Scan(
-		&i.ID,
+		&i.ProjectID,
 		&i.Title,
 		&i.Info,
 		&i.OwnerID,

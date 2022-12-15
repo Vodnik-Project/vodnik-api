@@ -6,6 +6,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
@@ -15,22 +17,22 @@ type Querier interface {
 	// TODO: auto time for beggining without input doesn't work.
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	DeleteProject(ctx context.Context, id int32) error
-	DeleteTask(ctx context.Context, id int32) error
-	DeleteUser(ctx context.Context, id int32) error
+	DeleteProject(ctx context.Context, projectID uuid.UUID) error
+	DeleteTask(ctx context.Context, taskID uuid.UUID) error
+	DeleteUser(ctx context.Context, userID uuid.UUID) error
 	DeleteUserFromProject(ctx context.Context, arg DeleteUserFromProjectParams) error
 	DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTaskParams) error
-	GetProjectData(ctx context.Context, id int32) (Project, error)
-	GetProjectsByUserId(ctx context.Context, ownerID int32) ([]Project, error)
-	GetProjectsOfUser(ctx context.Context, userID int32) ([]Usersinproject, error)
-	GetTaskData(ctx context.Context, id int32) (Task, error)
-	GetTasksInProject(ctx context.Context, projectID int32) ([]Task, error)
-	GetTasksOfUser(ctx context.Context, userID int32) ([]Usersintask, error)
+	GetProjectData(ctx context.Context, projectID uuid.UUID) (Project, error)
+	GetProjectsByUserId(ctx context.Context, ownerID uuid.UUID) ([]Project, error)
+	GetProjectsOfUser(ctx context.Context, userID uuid.UUID) ([]Usersinproject, error)
+	GetTaskData(ctx context.Context, taskID uuid.UUID) (Task, error)
+	GetTasksInProject(ctx context.Context, projectID uuid.UUID) ([]Task, error)
+	GetTasksOfUser(ctx context.Context, userID uuid.UUID) ([]Usersintask, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
-	GetUserById(ctx context.Context, id int32) (User, error)
+	GetUserById(ctx context.Context, userID uuid.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
-	GetUsersOfProject(ctx context.Context, projectID int32) ([]Usersinproject, error)
-	GetUsersOfTask(ctx context.Context, taskID int32) ([]Usersintask, error)
+	GetUsersOfProject(ctx context.Context, projectID uuid.UUID) ([]Usersinproject, error)
+	GetUsersOfTask(ctx context.Context, taskID uuid.UUID) ([]Usersintask, error)
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
 	// TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
 	UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error)

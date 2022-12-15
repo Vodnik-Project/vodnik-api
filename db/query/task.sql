@@ -14,7 +14,7 @@ WHERE project_id = $1;
 
 -- name: GetTaskData :one
 SELECT * FROM tasks
-WHERE id = $1;
+WHERE task_id = $1;
 
 -- TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
 
@@ -26,9 +26,9 @@ UPDATE tasks SET
   beggining = COALESCE(@beggining, beggining),
   deadline =  COALESCE(@deadline, deadline),
   color =     COALESCE(NULLIF(@color, 'NULL'), color)
-WHERE id = @id
+WHERE task_id = @id
 RETURNING *;
 
 -- name: DeleteTask :exec
 DELETE FROM tasks
-WHERE id = $1;
+WHERE task_id = $1;

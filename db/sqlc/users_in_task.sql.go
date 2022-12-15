@@ -7,6 +7,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const addUserToTask = `-- name: AddUserToTask :one
@@ -18,8 +20,8 @@ INSERT INTO usersintask (
 `
 
 type AddUserToTaskParams struct {
-	UserID int32 `json:"user_id"`
-	TaskID int32 `json:"task_id"`
+	UserID uuid.UUID `json:"user_id"`
+	TaskID uuid.UUID `json:"task_id"`
 }
 
 func (q *Queries) AddUserToTask(ctx context.Context, arg AddUserToTaskParams) (Usersintask, error) {
@@ -35,8 +37,8 @@ WHERE user_id = $1 AND task_id = $2
 `
 
 type DeleteUserFromTaskParams struct {
-	UserID int32 `json:"user_id"`
-	TaskID int32 `json:"task_id"`
+	UserID uuid.UUID `json:"user_id"`
+	TaskID uuid.UUID `json:"task_id"`
 }
 
 func (q *Queries) DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTaskParams) error {
@@ -49,7 +51,7 @@ SELECT task_id, user_id, added_at FROM usersintask
 WHERE user_id = $1
 `
 
-func (q *Queries) GetTasksOfUser(ctx context.Context, userID int32) ([]Usersintask, error) {
+func (q *Queries) GetTasksOfUser(ctx context.Context, userID uuid.UUID) ([]Usersintask, error) {
 	rows, err := q.query(ctx, q.getTasksOfUserStmt, getTasksOfUser, userID)
 	if err != nil {
 		return nil, err
@@ -77,7 +79,7 @@ SELECT task_id, user_id, added_at FROM usersintask
 WHERE task_id = $1
 `
 
-func (q *Queries) GetUsersOfTask(ctx context.Context, taskID int32) ([]Usersintask, error) {
+func (q *Queries) GetUsersOfTask(ctx context.Context, taskID uuid.UUID) ([]Usersintask, error) {
 	rows, err := q.query(ctx, q.getUsersOfTaskStmt, getUsersOfTask, taskID)
 	if err != nil {
 		return nil, err

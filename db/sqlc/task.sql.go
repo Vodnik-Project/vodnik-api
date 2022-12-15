@@ -8,6 +8,8 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createTask = `-- name: CreateTask :one
@@ -17,15 +19,15 @@ INSERT INTO tasks (
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8
 )
-RETURNING id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color
+RETURNING task_id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color
 `
 
 type CreateTaskParams struct {
-	ProjectID int32          `json:"project_id"`
+	ProjectID uuid.UUID      `json:"project_id"`
 	Title     string         `json:"title"`
 	Info      sql.NullString `json:"info"`
 	Tag       sql.NullString `json:"tag"`
-	CreatedBy int32          `json:"created_by"`
+	CreatedBy uuid.UUID      `json:"created_by"`
 	Beggining sql.NullTime   `json:"beggining"`
 	Deadline  sql.NullTime   `json:"deadline"`
 	Color     sql.NullString `json:"color"`
@@ -45,7 +47,7 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 	)
 	var i Task
 	err := row.Scan(
-		&i.ID,
+		&i.TaskID,
 		&i.ProjectID,
 		&i.Title,
 		&i.Info,
@@ -61,24 +63,24 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 
 const deleteTask = `-- name: DeleteTask :exec
 DELETE FROM tasks
-WHERE id = $1
+WHERE task_id = $1
 `
 
-func (q *Queries) DeleteTask(ctx context.Context, id int32) error {
-	_, err := q.exec(ctx, q.deleteTaskStmt, deleteTask, id)
+func (q *Queries) DeleteTask(ctx context.Context, taskID uuid.UUID) error {
+	_, err := q.exec(ctx, q.deleteTaskStmt, deleteTask, taskID)
 	return err
 }
 
 const getTaskData = `-- name: GetTaskData :one
-SELECT id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color FROM tasks
-WHERE id = $1
+SELECT task_id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color FROM tasks
+WHERE task_id = $1
 `
 
-func (q *Queries) GetTaskData(ctx context.Context, id int32) (Task, error) {
-	row := q.queryRow(ctx, q.getTaskDataStmt, getTaskData, id)
+func (q *Queries) GetTaskData(ctx context.Context, taskID uuid.UUID) (Task, error) {
+	row := q.queryRow(ctx, q.getTaskDataStmt, getTaskData, taskID)
 	var i Task
 	err := row.Scan(
-		&i.ID,
+		&i.TaskID,
 		&i.ProjectID,
 		&i.Title,
 		&i.Info,
@@ -93,11 +95,11 @@ func (q *Queries) GetTaskData(ctx context.Context, id int32) (Task, error) {
 }
 
 const getTasksInProject = `-- name: GetTasksInProject :many
-SELECT id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color FROM tasks
+SELECT task_id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color FROM tasks
 WHERE project_id = $1
 `
 
-func (q *Queries) GetTasksInProject(ctx context.Context, projectID int32) ([]Task, error) {
+func (q *Queries) GetTasksInProject(ctx context.Context, projectID uuid.UUID) ([]Task, error) {
 	rows, err := q.query(ctx, q.getTasksInProjectStmt, getTasksInProject, projectID)
 	if err != nil {
 		return nil, err
@@ -107,7 +109,7 @@ func (q *Queries) GetTasksInProject(ctx context.Context, projectID int32) ([]Tas
 	for rows.Next() {
 		var i Task
 		if err := rows.Scan(
-			&i.ID,
+			&i.TaskID,
 			&i.ProjectID,
 			&i.Title,
 			&i.Info,
@@ -140,8 +142,8 @@ UPDATE tasks SET
   beggining = COALESCE($4, beggining),
   deadline =  COALESCE($5, deadline),
   color =     COALESCE(NULLIF($6, 'NULL'), color)
-WHERE id = $7
-RETURNING id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color
+WHERE task_id = $7
+RETURNING task_id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color
 `
 
 type UpdateTaskParams struct {
@@ -151,7 +153,7 @@ type UpdateTaskParams struct {
 	Beggining sql.NullTime `json:"beggining"`
 	Deadline  sql.NullTime `json:"deadline"`
 	Color     interface{}  `json:"color"`
-	ID        int32        `json:"id"`
+	ID        uuid.UUID    `json:"id"`
 }
 
 // TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
@@ -167,7 +169,7 @@ func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, e
 	)
 	var i Task
 	err := row.Scan(
-		&i.ID,
+		&i.TaskID,
 		&i.ProjectID,
 		&i.Title,
 		&i.Info,

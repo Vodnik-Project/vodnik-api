@@ -7,23 +7,25 @@ package sqlc
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Project struct {
-	ID        int32          `json:"id"`
+	ProjectID uuid.UUID      `json:"project_id"`
 	Title     string         `json:"title"`
 	Info      sql.NullString `json:"info"`
-	OwnerID   int32          `json:"owner_id"`
+	OwnerID   uuid.UUID      `json:"owner_id"`
 	CreatedAt sql.NullTime   `json:"created_at"`
 }
 
 type Task struct {
-	ID        int32          `json:"id"`
-	ProjectID int32          `json:"project_id"`
+	TaskID    uuid.UUID      `json:"task_id"`
+	ProjectID uuid.UUID      `json:"project_id"`
 	Title     string         `json:"title"`
 	Info      sql.NullString `json:"info"`
 	Tag       sql.NullString `json:"tag"`
-	CreatedBy int32          `json:"created_by"`
+	CreatedBy uuid.UUID      `json:"created_by"`
 	CreatedAt sql.NullTime   `json:"created_at"`
 	Beggining sql.NullTime   `json:"beggining"`
 	Deadline  sql.NullTime   `json:"deadline"`
@@ -31,7 +33,7 @@ type Task struct {
 }
 
 type User struct {
-	ID           int32          `json:"id"`
+	UserID       uuid.UUID      `json:"user_id"`
 	Username     string         `json:"username"`
 	Email        string         `json:"email"`
 	PassHash     string         `json:"pass_hash"`
@@ -41,18 +43,18 @@ type User struct {
 }
 
 type Usersetting struct {
-	ID       int32        `json:"id"`
+	UserID   uuid.UUID    `json:"user_id"`
 	Darkmode sql.NullBool `json:"darkmode"`
 }
 
 type Usersinproject struct {
-	ProjectID int32        `json:"project_id"`
-	UserID    int32        `json:"user_id"`
+	ProjectID uuid.UUID    `json:"project_id"`
+	UserID    uuid.UUID    `json:"user_id"`
 	AddedAt   sql.NullTime `json:"added_at"`
 }
 
 type Usersintask struct {
-	TaskID  int32        `json:"task_id"`
-	UserID  int32        `json:"user_id"`
+	TaskID  uuid.UUID    `json:"task_id"`
+	UserID  uuid.UUID    `json:"user_id"`
 	AddedAt sql.NullTime `json:"added_at"`
 }

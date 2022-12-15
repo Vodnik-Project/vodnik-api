@@ -8,6 +8,8 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -16,7 +18,7 @@ INSERT INTO users (
 ) VALUES (
   $1, $2, $3, $4
 )
-RETURNING id, username, email, pass_hash, join_date, bio, profile_photo
+RETURNING user_id, username, email, pass_hash, join_date, bio, profile_photo
 `
 
 type CreateUserParams struct {
@@ -35,7 +37,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	)
 	var i User
 	err := row.Scan(
-		&i.ID,
+		&i.UserID,
 		&i.Username,
 		&i.Email,
 		&i.PassHash,
@@ -48,16 +50,16 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 
 const deleteUser = `-- name: DeleteUser :exec
 DELETE FROM users
-WHERE id = $1
+WHERE user_id = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
-	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser, id)
+func (q *Queries) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser, userID)
 	return err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, pass_hash, join_date, bio, profile_photo FROM users
+SELECT user_id, username, email, pass_hash, join_date, bio, profile_photo FROM users
 WHERE email = $1
 `
 
@@ -65,7 +67,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	row := q.queryRow(ctx, q.getUserByEmailStmt, getUserByEmail, email)
 	var i User
 	err := row.Scan(
-		&i.ID,
+		&i.UserID,
 		&i.Username,
 		&i.Email,
 		&i.PassHash,
@@ -77,15 +79,15 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, username, email, pass_hash, join_date, bio, profile_photo FROM users
-WHERE id = $1
+SELECT user_id, username, email, pass_hash, join_date, bio, profile_photo FROM users
+WHERE user_id = $1
 `
 
-func (q *Queries) GetUserById(ctx context.Context, id int32) (User, error) {
-	row := q.queryRow(ctx, q.getUserByIdStmt, getUserById, id)
+func (q *Queries) GetUserById(ctx context.Context, userID uuid.UUID) (User, error) {
+	row := q.queryRow(ctx, q.getUserByIdStmt, getUserById, userID)
 	var i User
 	err := row.Scan(
-		&i.ID,
+		&i.UserID,
 		&i.Username,
 		&i.Email,
 		&i.PassHash,
@@ -97,7 +99,7 @@ func (q *Queries) GetUserById(ctx context.Context, id int32) (User, error) {
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, email, pass_hash, join_date, bio, profile_photo FROM users
+SELECT user_id, username, email, pass_hash, join_date, bio, profile_photo FROM users
 WHERE username = $1
 `
 
@@ -105,7 +107,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	row := q.queryRow(ctx, q.getUserByUsernameStmt, getUserByUsername, username)
 	var i User
 	err := row.Scan(
-		&i.ID,
+		&i.UserID,
 		&i.Username,
 		&i.Email,
 		&i.PassHash,
@@ -121,15 +123,15 @@ UPDATE users SET
   username = COALESCE(NULLIF($1, 'NULL'), username),
   email = COALESCE(NULLIF($2, 'NULL'), email),
   bio = COALESCE(NULLIF($3, 'NULL'), bio)
-WHERE id = $4
-RETURNING id, username, email, pass_hash, join_date, bio, profile_photo
+WHERE user_id = $4
+RETURNING user_id, username, email, pass_hash, join_date, bio, profile_photo
 `
 
 type UpdateUserParams struct {
 	Username interface{} `json:"username"`
 	Email    interface{} `json:"email"`
 	Bio      interface{} `json:"bio"`
-	ID       int32       `json:"id"`
+	ID       uuid.UUID   `json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -141,7 +143,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	)
 	var i User
 	err := row.Scan(
-		&i.ID,
+		&i.UserID,
 		&i.Username,
 		&i.Email,
 		&i.PassHash,

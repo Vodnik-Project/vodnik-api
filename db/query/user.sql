@@ -8,7 +8,7 @@ RETURNING *;
 
 -- name: GetUserById :one
 SELECT * FROM users
-WHERE id = $1;
+WHERE user_id = $1;
 
 -- name: GetUserByEmail :one
 SELECT * FROM users
@@ -23,9 +23,9 @@ UPDATE users SET
   username = COALESCE(NULLIF(@username, 'NULL'), username),
   email = COALESCE(NULLIF(@email, 'NULL'), email),
   bio = COALESCE(NULLIF(@bio, 'NULL'), bio)
-WHERE id = @id
+WHERE user_id = @id
 RETURNING *;
 
 -- name: DeleteUser :exec
 DELETE FROM users
-WHERE id = $1;
+WHERE user_id = $1;
