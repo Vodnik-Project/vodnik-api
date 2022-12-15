@@ -69,13 +69,13 @@ func (q *Queries) DeleteTask(ctx context.Context, id int32) error {
 	return err
 }
 
-const getTask = `-- name: GetTask :one
+const getTaskData = `-- name: GetTaskData :one
 SELECT id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color FROM tasks
 WHERE id = $1
 `
 
-func (q *Queries) GetTask(ctx context.Context, id int32) (Task, error) {
-	row := q.queryRow(ctx, q.getTaskStmt, getTask, id)
+func (q *Queries) GetTaskData(ctx context.Context, id int32) (Task, error) {
+	row := q.queryRow(ctx, q.getTaskDataStmt, getTaskData, id)
 	var i Task
 	err := row.Scan(
 		&i.ID,
@@ -92,13 +92,13 @@ func (q *Queries) GetTask(ctx context.Context, id int32) (Task, error) {
 	return i, err
 }
 
-const getTasks = `-- name: GetTasks :many
+const getTasksInProject = `-- name: GetTasksInProject :many
 SELECT id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color FROM tasks
 WHERE project_id = $1
 `
 
-func (q *Queries) GetTasks(ctx context.Context, projectID int32) ([]Task, error) {
-	rows, err := q.query(ctx, q.getTasksStmt, getTasks, projectID)
+func (q *Queries) GetTasksInProject(ctx context.Context, projectID int32) ([]Task, error) {
+	rows, err := q.query(ctx, q.getTasksInProjectStmt, getTasksInProject, projectID)
 	if err != nil {
 		return nil, err
 	}

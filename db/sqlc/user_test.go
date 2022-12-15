@@ -32,22 +32,43 @@ func TestCreateUser(t *testing.T) {
 	createrandomuser(t)
 }
 
-func TestGetUser(t *testing.T) {
+func TestGetUserById(t *testing.T) {
 	randomuser := createrandomuser(t)
-	toGetBy := []GetUserParams{
-		{ID: randomuser.ID},
-		{Email: randomuser.Email},
-	}
-	for _, arg := range toGetBy {
-		user, err := testQueries.GetUser(context.Background(), arg)
-		require.NoError(t, err)
-		require.NotEmpty(t, user)
 
-		require.Equal(t, randomuser.Username, user.Username)
-		require.Equal(t, randomuser.Email, user.Email)
-		require.Equal(t, randomuser.PassHash, user.PassHash)
-		require.Equal(t, randomuser.Bio, user.Bio)
-	}
+	user, err := testQueries.GetUserById(context.Background(), randomuser.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, user)
+
+	require.Equal(t, randomuser.Username, user.Username)
+	require.Equal(t, randomuser.Email, user.Email)
+	require.Equal(t, randomuser.PassHash, user.PassHash)
+	require.Equal(t, randomuser.Bio, user.Bio)
+}
+
+func TestGetUserByEmail(t *testing.T) {
+	randomuser := createrandomuser(t)
+
+	user, err := testQueries.GetUserByEmail(context.Background(), randomuser.Email)
+	require.NoError(t, err)
+	require.NotEmpty(t, user)
+
+	require.Equal(t, randomuser.Username, user.Username)
+	require.Equal(t, randomuser.Email, user.Email)
+	require.Equal(t, randomuser.PassHash, user.PassHash)
+	require.Equal(t, randomuser.Bio, user.Bio)
+}
+
+func TestGetUserByUsername(t *testing.T) {
+	randomuser := createrandomuser(t)
+
+	user, err := testQueries.GetUserByUsername(context.Background(), randomuser.Username)
+	require.NoError(t, err)
+	require.NotEmpty(t, user)
+
+	require.Equal(t, randomuser.Username, user.Username)
+	require.Equal(t, randomuser.Email, user.Email)
+	require.Equal(t, randomuser.PassHash, user.PassHash)
+	require.Equal(t, randomuser.Bio, user.Bio)
 }
 
 func TestUpdateUser(t *testing.T) {
@@ -74,9 +95,7 @@ func TestDeleteUser(t *testing.T) {
 	err := testQueries.DeleteUser(context.Background(), randomuser.ID)
 	require.NoError(t, err)
 
-	user, err := testQueries.GetUser(context.Background(), GetUserParams{
-		ID: randomuser.ID,
-	})
+	user, err := testQueries.GetUserById(context.Background(), randomuser.ID)
 	require.Error(t, err)
 	require.EqualError(t, sql.ErrNoRows, err.Error())
 	require.Empty(t, user)

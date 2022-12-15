@@ -6,10 +6,17 @@ INSERT INTO users (
 )
 RETURNING *;
 
--- name: GetUser :one
+-- name: GetUserById :one
 SELECT * FROM users
-WHERE (id = COALESCE(@id , id)
-  OR  email = COALESCE(@email, email));
+WHERE id = $1;
+
+-- name: GetUserByEmail :one
+SELECT * FROM users
+WHERE email = $1;
+
+-- name: GetUserByUsername :one
+SELECT * FROM users
+WHERE username = $1;
 
 -- name: UpdateUser :one
 UPDATE users SET

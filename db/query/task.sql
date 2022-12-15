@@ -8,11 +8,11 @@ INSERT INTO tasks (
 )
 RETURNING *;
 
--- name: GetTasks :many
+-- name: GetTasksInProject :many
 SELECT * FROM tasks
 WHERE project_id = $1;
 
--- name: GetTask :one
+-- name: GetTaskData :one
 SELECT * FROM tasks
 WHERE id = $1;
 

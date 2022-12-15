@@ -56,19 +56,53 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
 	return err
 }
 
-const getUser = `-- name: GetUser :one
+const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, username, email, pass_hash, join_date, bio, profile_photo FROM users
-WHERE (id = COALESCE($1 , id)
-  OR  email = COALESCE($2, email))
+WHERE email = $1
 `
 
-type GetUserParams struct {
-	ID    int32  `json:"id"`
-	Email string `json:"email"`
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.queryRow(ctx, q.getUserByEmailStmt, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PassHash,
+		&i.JoinDate,
+		&i.Bio,
+		&i.ProfilePhoto,
+	)
+	return i, err
 }
 
-func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (User, error) {
-	row := q.queryRow(ctx, q.getUserStmt, getUser, arg.ID, arg.Email)
+const getUserById = `-- name: GetUserById :one
+SELECT id, username, email, pass_hash, join_date, bio, profile_photo FROM users
+WHERE id = $1
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id int32) (User, error) {
+	row := q.queryRow(ctx, q.getUserByIdStmt, getUserById, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PassHash,
+		&i.JoinDate,
+		&i.Bio,
+		&i.ProfilePhoto,
+	)
+	return i, err
+}
+
+const getUserByUsername = `-- name: GetUserByUsername :one
+SELECT id, username, email, pass_hash, join_date, bio, profile_photo FROM users
+WHERE username = $1
+`
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
+	row := q.queryRow(ctx, q.getUserByUsernameStmt, getUserByUsername, username)
 	var i User
 	err := row.Scan(
 		&i.ID,

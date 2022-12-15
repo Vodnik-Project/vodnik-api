@@ -44,13 +44,13 @@ func (q *Queries) DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTask
 	return err
 }
 
-const getTaskUsers = `-- name: GetTaskUsers :many
+const getTasksOfUser = `-- name: GetTasksOfUser :many
 SELECT task_id, user_id, added_at FROM usersintask
-WHERE task_id = $1
+WHERE user_id = $1
 `
 
-func (q *Queries) GetTaskUsers(ctx context.Context, taskID int32) ([]Usersintask, error) {
-	rows, err := q.query(ctx, q.getTaskUsersStmt, getTaskUsers, taskID)
+func (q *Queries) GetTasksOfUser(ctx context.Context, userID int32) ([]Usersintask, error) {
+	rows, err := q.query(ctx, q.getTasksOfUserStmt, getTasksOfUser, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -72,13 +72,13 @@ func (q *Queries) GetTaskUsers(ctx context.Context, taskID int32) ([]Usersintask
 	return items, nil
 }
 
-const getUserTasks = `-- name: GetUserTasks :many
+const getUsersOfTask = `-- name: GetUsersOfTask :many
 SELECT task_id, user_id, added_at FROM usersintask
-WHERE user_id = $1
+WHERE task_id = $1
 `
 
-func (q *Queries) GetUserTasks(ctx context.Context, userID int32) ([]Usersintask, error) {
-	rows, err := q.query(ctx, q.getUserTasksStmt, getUserTasks, userID)
+func (q *Queries) GetUsersOfTask(ctx context.Context, taskID int32) ([]Usersintask, error) {
+	rows, err := q.query(ctx, q.getUsersOfTaskStmt, getUsersOfTask, taskID)
 	if err != nil {
 		return nil, err
 	}

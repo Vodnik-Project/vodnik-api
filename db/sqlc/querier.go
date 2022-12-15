@@ -20,15 +20,17 @@ type Querier interface {
 	DeleteUser(ctx context.Context, id int32) error
 	DeleteUserFromProject(ctx context.Context, arg DeleteUserFromProjectParams) error
 	DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTaskParams) error
-	GetProject(ctx context.Context, id int32) (Project, error)
-	GetProjectUsers(ctx context.Context, projectID int32) ([]Usersinproject, error)
-	GetProjects(ctx context.Context, ownerID int32) ([]Project, error)
-	GetTask(ctx context.Context, id int32) (Task, error)
-	GetTaskUsers(ctx context.Context, taskID int32) ([]Usersintask, error)
-	GetTasks(ctx context.Context, projectID int32) ([]Task, error)
-	GetUser(ctx context.Context, arg GetUserParams) (User, error)
-	GetUserProjects(ctx context.Context, userID int32) ([]Usersinproject, error)
-	GetUserTasks(ctx context.Context, userID int32) ([]Usersintask, error)
+	GetProjectData(ctx context.Context, id int32) (Project, error)
+	GetProjectsByUserId(ctx context.Context, ownerID int32) ([]Project, error)
+	GetProjectsOfUser(ctx context.Context, userID int32) ([]Usersinproject, error)
+	GetTaskData(ctx context.Context, id int32) (Task, error)
+	GetTasksInProject(ctx context.Context, projectID int32) ([]Task, error)
+	GetTasksOfUser(ctx context.Context, userID int32) ([]Usersintask, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserById(ctx context.Context, id int32) (User, error)
+	GetUserByUsername(ctx context.Context, username string) (User, error)
+	GetUsersOfProject(ctx context.Context, projectID int32) ([]Usersinproject, error)
+	GetUsersOfTask(ctx context.Context, taskID int32) ([]Usersintask, error)
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
 	// TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
 	UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error)

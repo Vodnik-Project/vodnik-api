@@ -48,13 +48,13 @@ func (q *Queries) DeleteProject(ctx context.Context, id int32) error {
 	return err
 }
 
-const getProject = `-- name: GetProject :one
+const getProjectData = `-- name: GetProjectData :one
 SELECT id, title, info, owner_id, created_at FROM projects
 WHERE id = $1
 `
 
-func (q *Queries) GetProject(ctx context.Context, id int32) (Project, error) {
-	row := q.queryRow(ctx, q.getProjectStmt, getProject, id)
+func (q *Queries) GetProjectData(ctx context.Context, id int32) (Project, error) {
+	row := q.queryRow(ctx, q.getProjectDataStmt, getProjectData, id)
 	var i Project
 	err := row.Scan(
 		&i.ID,
@@ -66,13 +66,13 @@ func (q *Queries) GetProject(ctx context.Context, id int32) (Project, error) {
 	return i, err
 }
 
-const getProjects = `-- name: GetProjects :many
+const getProjectsByUserId = `-- name: GetProjectsByUserId :many
 SELECT id, title, info, owner_id, created_at FROM projects
 WHERE owner_id = $1
 `
 
-func (q *Queries) GetProjects(ctx context.Context, ownerID int32) ([]Project, error) {
-	rows, err := q.query(ctx, q.getProjectsStmt, getProjects, ownerID)
+func (q *Queries) GetProjectsByUserId(ctx context.Context, ownerID int32) ([]Project, error) {
+	rows, err := q.query(ctx, q.getProjectsByUserIdStmt, getProjectsByUserId, ownerID)
 	if err != nil {
 		return nil, err
 	}

@@ -5,11 +5,11 @@ INSERT INTO usersintask (
     $1, $2
 ) RETURNING *;
 
--- name: GetUserTasks :many
+-- name: GetTasksOfUser :many
 SELECT * FROM usersintask
 WHERE user_id = $1;
 
--- name: GetTaskUsers :many
+-- name: GetUsersOfTask :many
 SELECT * FROM usersintask
 WHERE task_id = $1;
 

@@ -44,13 +44,13 @@ func (q *Queries) DeleteUserFromProject(ctx context.Context, arg DeleteUserFromP
 	return err
 }
 
-const getProjectUsers = `-- name: GetProjectUsers :many
+const getProjectsOfUser = `-- name: GetProjectsOfUser :many
 SELECT project_id, user_id, added_at FROM usersinproject
-WHERE project_id = $1
+WHERE user_id = $1
 `
 
-func (q *Queries) GetProjectUsers(ctx context.Context, projectID int32) ([]Usersinproject, error) {
-	rows, err := q.query(ctx, q.getProjectUsersStmt, getProjectUsers, projectID)
+func (q *Queries) GetProjectsOfUser(ctx context.Context, userID int32) ([]Usersinproject, error) {
+	rows, err := q.query(ctx, q.getProjectsOfUserStmt, getProjectsOfUser, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -72,13 +72,13 @@ func (q *Queries) GetProjectUsers(ctx context.Context, projectID int32) ([]Users
 	return items, nil
 }
 
-const getUserProjects = `-- name: GetUserProjects :many
+const getUsersOfProject = `-- name: GetUsersOfProject :many
 SELECT project_id, user_id, added_at FROM usersinproject
-WHERE user_id = $1
+WHERE project_id = $1
 `
 
-func (q *Queries) GetUserProjects(ctx context.Context, userID int32) ([]Usersinproject, error) {
-	rows, err := q.query(ctx, q.getUserProjectsStmt, getUserProjects, userID)
+func (q *Queries) GetUsersOfProject(ctx context.Context, projectID int32) ([]Usersinproject, error) {
+	rows, err := q.query(ctx, q.getUsersOfProjectStmt, getUsersOfProject, projectID)
 	if err != nil {
 		return nil, err
 	}

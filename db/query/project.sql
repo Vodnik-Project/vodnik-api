@@ -6,11 +6,11 @@ INSERT INTO projects (
 )
 RETURNING *;
 
--- name: GetProjects :many
+-- name: GetProjectsByUserId :many
 SELECT * FROM projects
 WHERE owner_id = @owner_id;
 
--- name: GetProject :one
+-- name: GetProjectData :one
 SELECT * FROM projects
 WHERE id = @id;
 
