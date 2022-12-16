@@ -48,6 +48,12 @@ CREATE TABLE "usersintask" (
   "added_at" timestamptz DEFAULT (now())
 );
 
+CREATE TABLE "refresh_token" (
+  "token" varchar PRIMARY KEY,
+  "user_id" uuid NOT NULL,
+  "fingerprint" varchar NOT NULL
+);
+
 CREATE INDEX ON "users" ("user_id");
 
 CREATE INDEX ON "users" ("username");
@@ -63,6 +69,8 @@ CREATE INDEX ON "projects" ("owner_id");
 CREATE INDEX ON "tasks" ("task_id");
 
 CREATE INDEX ON "tasks" ("project_id");
+
+CREATE INDEX ON "refresh_token" ("token");
 
 ALTER TABLE "usersetting" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
 
@@ -83,3 +91,7 @@ ALTER TABLE "usersintask" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_
 ALTER TABLE "usersinproject" ADD CONSTRAINT "uq_usersinproject" UNIQUE("project_id", "user_id");
 
 ALTER TABLE "usersintask" ADD CONSTRAINT "uq_usersintask" UNIQUE("task_id", "user_id");
+
+ALTER TABLE "refresh_token" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
+
+ALTER TABLE "refresh_token" ADD CONSTRAINT "uq_refresh_token" UNIQUE("user_id", "fingerprint");

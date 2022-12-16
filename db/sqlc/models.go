@@ -19,6 +19,12 @@ type Project struct {
 	CreatedAt sql.NullTime   `json:"created_at"`
 }
 
+type RefreshToken struct {
+	Token       string    `json:"token"`
+	UserID      uuid.UUID `json:"user_id"`
+	Fingerprint string    `json:"fingerprint"`
+}
+
 type Task struct {
 	TaskID    uuid.UUID      `json:"task_id"`
 	ProjectID uuid.UUID      `json:"project_id"`
