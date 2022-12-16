@@ -1,7 +1,9 @@
 package api
 
 import (
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 
@@ -30,11 +32,12 @@ func (s *Server) CreateUser(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"err": err.Error()})
 	}
-
+	passHash := sha256.Sum256([]byte(user.Password))
+	passHashHex := hex.EncodeToString(passHash[:])
 	createdUser, err := s.queries.CreateUser(c.Request().Context(), sqlc.CreateUserParams{
 		Username: user.Username,
 		Email:    user.Email,
-		PassHash: user.Password,
+		PassHash: passHashHex,
 		Bio:      sql.NullString{String: user.Bio, Valid: true},
 	})
 	if err != nil {
