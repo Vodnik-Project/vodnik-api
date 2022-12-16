@@ -1,23 +1,26 @@
 package api
 
 import (
+	"github.com/Vodnik-Project/vodnik-api/auth"
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	"github.com/labstack/echo/v4"
 )
 
 type Server struct {
-	queries sqlc.Queries
-	e       *echo.Echo
+	queries    sqlc.Queries
+	tokenMaker auth.TokenMaker
+	e          *echo.Echo
 }
 
-func NewServer(queries *sqlc.Queries) *Server {
+func NewServer(queries *sqlc.Queries, tokenMaker auth.TokenMaker) *Server {
 	e := echo.New()
 	server := &Server{
-		queries: *queries,
+		queries:    *queries,
+		tokenMaker: tokenMaker,
 	}
 
-	// e.POST("/login", auth.Login)
-	// e.POST("/refresh_token", auth.Refresh_token)
+	e.POST("/login", server.Login)
+	e.POST("/refresh_token", server.Refresh_token)
 
 	e.POST("/user", server.CreateUser)
 	e.GET("/user", server.GetUserData)
