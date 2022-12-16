@@ -44,10 +44,6 @@ func (s *Server) CreateUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, createdUser)
 }
 
-func (s *Server) Login(c echo.Context) error {
-	return nil
-}
-
 func (s *Server) GetUserData(c echo.Context) error {
 	return nil
 }
