@@ -7,16 +7,18 @@ import (
 )
 
 type Server struct {
-	queries    sqlc.Queries
-	tokenMaker auth.TokenMaker
-	e          *echo.Echo
+	queries     sqlc.Queries
+	tokenMaker  auth.TokenMaker
+	tokenSecret string
+	e           *echo.Echo
 }
 
-func NewServer(queries *sqlc.Queries, tokenMaker auth.TokenMaker) *Server {
+func NewServer(queries *sqlc.Queries, tokenSecret string, tokenMaker auth.TokenMaker) *Server {
 	e := echo.New()
 	server := &Server{
-		queries:    *queries,
-		tokenMaker: tokenMaker,
+		queries:     *queries,
+		tokenSecret: tokenSecret,
+		tokenMaker:  tokenMaker,
 	}
 
 	e.POST("/login", server.Login)
