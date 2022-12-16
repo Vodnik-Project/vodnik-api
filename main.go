@@ -25,7 +25,7 @@ func main() {
 		AccessTokenDuration:  config.ACCESS_TOKEN_DURATION,
 		RefreshTokenDuration: config.REFRESH_TOKEN_DURATION,
 	})
-	server := api.NewServer(q, token)
+	server := api.NewServer(q, config.JWT_SECRET_KEY, token)
 	err = server.StartServer(config.SERVER_PORT)
 	if err != nil {
 		log.Fatalf("can't start server: %v", err)
