@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/Vodnik-Project/vodnik-api/api"
+	"github.com/Vodnik-Project/vodnik-api/auth"
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	"github.com/Vodnik-Project/vodnik-api/util"
 )
@@ -19,7 +20,12 @@ func main() {
 		log.Fatalf("can't connect to db: %v", err)
 	}
 	q := sqlc.New(db)
-	server := api.NewServer(q)
+	token := auth.NewTokenMaker(auth.Token{
+		Secret:               []byte(config.JWT_SECRET_KEY),
+		AccessTokenDuration:  config.ACCESS_TOKEN_DURATION,
+		RefreshTokenDuration: config.REFRESH_TOKEN_DURATION,
+	})
+	server := api.NewServer(q, token)
 	err = server.StartServer(config.SERVER_PORT)
 	if err != nil {
 		log.Fatalf("can't start server: %v", err)
