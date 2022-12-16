@@ -16,7 +16,7 @@ type Token struct {
 
 type TokenMaker interface {
 	CreateAccessToken(userID uuid.UUID) (string, error)
-	CreateRefreshToken() (string, error)
+	CreateRefreshToken(sessionID string) (string, error)
 }
 
 func NewTokenMaker(token Token) Token {
@@ -41,8 +41,8 @@ func (t Token) CreateAccessToken(userID uuid.UUID) (string, error) {
 	return tk, nil
 }
 
-func (t Token) CreateRefreshToken() (string, error) {
-	p := NewRefreshTokenPayload(t.RefreshTokenDuration)
+func (t Token) CreateRefreshToken(sessionID string) (string, error) {
+	p := NewRefreshTokenPayload(sessionID, t.RefreshTokenDuration)
 	if err := p.Valid(); err != nil {
 		return "", fmt.Errorf("payload is not valid: %v", err)
 	}
