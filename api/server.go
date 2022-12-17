@@ -4,6 +4,7 @@ import (
 	"github.com/Vodnik-Project/vodnik-api/auth"
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type Server struct {
@@ -25,29 +26,35 @@ func NewServer(queries *sqlc.Queries, tokenSecret string, tokenMaker auth.TokenM
 	e.POST("/refresh_token", server.Refresh_token)
 
 	e.POST("/user", server.CreateUser)
-	e.GET("/user", server.GetUserData)
-	e.PUT("/user/:userid", server.UpdateUser)
-	e.DELETE("/user/:userid", server.DeleteUser)
+	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
+		Claims:     &auth.AccessTokenPayload{},
+		SigningKey: []byte(tokenSecret),
+		Skipper:    skipper,
+	}))
+	user := e.Group("/user")
+	// user.Use(server.userAuthorization)
+	user.GET("", server.GetUserData)
+	user.PUT("", server.UpdateUser)
+	user.DELETE("", server.DeleteUser)
 
-	// e.POST("/task", server.CreateTask)
-	// e.GET("/task/:taskid", server.GetTaskData)
-	// e.GET("/tasks/:projectid", server.GetTasksInProject)
-	// e.PUT("/task/:taskid", server.UpdateTask)
-	// e.DELETE("/task/:taskid", server.DeleteTask)
+	// task := e.Group("/task")
+	// task.POST("/", server.CreateTask)
+	// task.GET("/:taskid", server.GetTaskData)
+	// task.GET("/byproject/:projectid", server.GetTasksByProjectID)
+	// task.PUT("/:taskid", server.UpdateTask)
+	// task.DELETE("/:taskid", server.DeleteTask)
+	// task.GET("/user/:taskid/users", server.GetUsersInTask)
+	// task.POST("/user/:taskid/:username", server.AddUserToTask)
+	// task.DELETE("/user/:taskid/:username", server.DeleteUserFromTask)
 
-	// e.POST("/project", server.CreateProject)
-	// e.GET("/project/:projectid", server.GetProjectData)
-	// e.GET("/projects/:ownerid", server.GetProjectsByUserId)
-	// e.PUT("/project/:projectid", server.UpdateProject)
-	// e.DELETE("/project/:projectid", server.DeleteProject)
-
-	// e.GET("/project/:projectid/users", server.GetUsersInProject)
-	// e.POST("project/:projectid/:userid", server.AddUserToProject)
-	// e.DELETE("project/:projectid/:userid", server.DeleteUserFromProject)
-
-	// e.GET("/task/:taskid/users", server.GetUsersInTask)
-	// e.POST("task/:taskid/:userid", server.AddUserToTask)
-	// e.DELETE("task/:taskid/:userid", server.DeleteUserFromTask)
+	// project := e.Group("/project")
+	// project.POST("/", server.CreateProject)
+	// project.GET("/:projectid", server.GetProjectData)
+	// project.PUT("/:projectid", server.UpdateProject)
+	// project.DELETE("/:projectid", server.DeleteProject)
+	// project.GET("/user/:projectid/users", server.GetUsersInProject)
+	// project.POST("/user/:projectid/:username", server.AddUserToProject)
+	// project.DELETE("/user/:projectid/:username", server.DeleteUserFromProject)
 
 	server.e = e
 	return server
