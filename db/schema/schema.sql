@@ -39,13 +39,15 @@ CREATE TABLE "tasks" (
 CREATE TABLE "usersinproject" (
   "project_id" uuid NOT NULL,
   "user_id" uuid NOT NULL,
-  "added_at" timestamptz DEFAULT (now())
+  "added_at" timestamptz DEFAULT (now()),
+  "admin" bool DEFAULT false
 );
 
 CREATE TABLE "usersintask" (
   "task_id" uuid NOT NULL,
   "user_id" uuid NOT NULL,
-  "added_at" timestamptz DEFAULT (now())
+  "added_at" timestamptz DEFAULT (now()),
+  "admin" bool DEFAULT false
 );
 
 CREATE TABLE "refresh_token" (

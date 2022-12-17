@@ -7,27 +7,34 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
 
 const addUserToTask = `-- name: AddUserToTask :one
 INSERT INTO usersintask (
-    user_id, task_id
+    user_id, task_id, admin
 ) VALUES (
-    $1, $2
-) RETURNING task_id, user_id, added_at
+    $1, $2, $3
+) RETURNING task_id, user_id, added_at, admin
 `
 
 type AddUserToTaskParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	TaskID uuid.UUID `json:"task_id"`
+	UserID uuid.UUID    `json:"user_id"`
+	TaskID uuid.UUID    `json:"task_id"`
+	Admin  sql.NullBool `json:"admin"`
 }
 
 func (q *Queries) AddUserToTask(ctx context.Context, arg AddUserToTaskParams) (Usersintask, error) {
-	row := q.queryRow(ctx, q.addUserToTaskStmt, addUserToTask, arg.UserID, arg.TaskID)
+	row := q.queryRow(ctx, q.addUserToTaskStmt, addUserToTask, arg.UserID, arg.TaskID, arg.Admin)
 	var i Usersintask
-	err := row.Scan(&i.TaskID, &i.UserID, &i.AddedAt)
+	err := row.Scan(
+		&i.TaskID,
+		&i.UserID,
+		&i.AddedAt,
+		&i.Admin,
+	)
 	return i, err
 }
 
@@ -47,7 +54,7 @@ func (q *Queries) DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTask
 }
 
 const getTasksByUserID = `-- name: GetTasksByUserID :many
-SELECT task_id, user_id, added_at FROM usersintask
+SELECT task_id, user_id, added_at, admin FROM usersintask
 WHERE user_id = $1
 `
 
@@ -60,7 +67,12 @@ func (q *Queries) GetTasksByUserID(ctx context.Context, userID uuid.UUID) ([]Use
 	var items []Usersintask
 	for rows.Next() {
 		var i Usersintask
-		if err := rows.Scan(&i.TaskID, &i.UserID, &i.AddedAt); err != nil {
+		if err := rows.Scan(
+			&i.TaskID,
+			&i.UserID,
+			&i.AddedAt,
+			&i.Admin,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -75,7 +87,7 @@ func (q *Queries) GetTasksByUserID(ctx context.Context, userID uuid.UUID) ([]Use
 }
 
 const getUsersByTaskID = `-- name: GetUsersByTaskID :many
-SELECT task_id, user_id, added_at FROM usersintask
+SELECT task_id, user_id, added_at, admin FROM usersintask
 WHERE task_id = $1
 `
 
@@ -88,7 +100,12 @@ func (q *Queries) GetUsersByTaskID(ctx context.Context, taskID uuid.UUID) ([]Use
 	var items []Usersintask
 	for rows.Next() {
 		var i Usersintask
-		if err := rows.Scan(&i.TaskID, &i.UserID, &i.AddedAt); err != nil {
+		if err := rows.Scan(
+			&i.TaskID,
+			&i.UserID,
+			&i.AddedAt,
+			&i.Admin,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

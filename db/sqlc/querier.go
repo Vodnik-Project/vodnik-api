@@ -26,7 +26,6 @@ type Querier interface {
 	GetDeviceSession(ctx context.Context, arg GetDeviceSessionParams) (RefreshToken, error)
 	GetProjectData(ctx context.Context, projectID uuid.UUID) (Project, error)
 	GetProjectsByUserID(ctx context.Context, userID uuid.UUID) ([]Usersinproject, error)
-	GetProjectsByUserId(ctx context.Context, ownerID uuid.UUID) ([]Project, error)
 	GetSessionByToken(ctx context.Context, token string) (RefreshToken, error)
 	GetTaskData(ctx context.Context, taskID uuid.UUID) (Task, error)
 	GetTasksByProjectID(ctx context.Context, projectID uuid.UUID) ([]Task, error)

@@ -1,8 +1,8 @@
 -- name: AddUserToTask :one
 INSERT INTO usersintask (
-    user_id, task_id
+    user_id, task_id, admin
 ) VALUES (
-    $1, $2
+    $1, $2, $3
 ) RETURNING *;
 
 -- name: GetTasksByUserID :many

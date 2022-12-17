@@ -66,9 +66,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getProjectsByUserIDStmt, err = db.PrepareContext(ctx, getProjectsByUserID); err != nil {
 		return nil, fmt.Errorf("error preparing query GetProjectsByUserID: %w", err)
 	}
-	if q.getProjectsByUserIdStmt, err = db.PrepareContext(ctx, getProjectsByUserId); err != nil {
-		return nil, fmt.Errorf("error preparing query GetProjectsByUserId: %w", err)
-	}
 	if q.getSessionByTokenStmt, err = db.PrepareContext(ctx, getSessionByToken); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSessionByToken: %w", err)
 	}
@@ -181,11 +178,6 @@ func (q *Queries) Close() error {
 	if q.getProjectsByUserIDStmt != nil {
 		if cerr := q.getProjectsByUserIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getProjectsByUserIDStmt: %w", cerr)
-		}
-	}
-	if q.getProjectsByUserIdStmt != nil {
-		if cerr := q.getProjectsByUserIdStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getProjectsByUserIdStmt: %w", cerr)
 		}
 	}
 	if q.getSessionByTokenStmt != nil {
@@ -306,7 +298,6 @@ type Queries struct {
 	getDeviceSessionStmt      *sql.Stmt
 	getProjectDataStmt        *sql.Stmt
 	getProjectsByUserIDStmt   *sql.Stmt
-	getProjectsByUserIdStmt   *sql.Stmt
 	getSessionByTokenStmt     *sql.Stmt
 	getTaskDataStmt           *sql.Stmt
 	getTasksByProjectIDStmt   *sql.Stmt
@@ -340,7 +331,6 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getDeviceSessionStmt:      q.getDeviceSessionStmt,
 		getProjectDataStmt:        q.getProjectDataStmt,
 		getProjectsByUserIDStmt:   q.getProjectsByUserIDStmt,
-		getProjectsByUserIdStmt:   q.getProjectsByUserIdStmt,
 		getSessionByTokenStmt:     q.getSessionByTokenStmt,
 		getTaskDataStmt:           q.getTaskDataStmt,
 		getTasksByProjectIDStmt:   q.getTasksByProjectIDStmt,

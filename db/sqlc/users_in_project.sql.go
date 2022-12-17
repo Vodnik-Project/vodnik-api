@@ -7,27 +7,34 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
 
 const addUserToProject = `-- name: AddUserToProject :one
 INSERT INTO usersinproject (
-    user_id, project_id
+    user_id, project_id, admin
 ) VALUES (
-    $1, $2
-) RETURNING project_id, user_id, added_at
+    $1, $2, $3
+) RETURNING project_id, user_id, added_at, admin
 `
 
 type AddUserToProjectParams struct {
-	UserID    uuid.UUID `json:"user_id"`
-	ProjectID uuid.UUID `json:"project_id"`
+	UserID    uuid.UUID    `json:"user_id"`
+	ProjectID uuid.UUID    `json:"project_id"`
+	Admin     sql.NullBool `json:"admin"`
 }
 
 func (q *Queries) AddUserToProject(ctx context.Context, arg AddUserToProjectParams) (Usersinproject, error) {
-	row := q.queryRow(ctx, q.addUserToProjectStmt, addUserToProject, arg.UserID, arg.ProjectID)
+	row := q.queryRow(ctx, q.addUserToProjectStmt, addUserToProject, arg.UserID, arg.ProjectID, arg.Admin)
 	var i Usersinproject
-	err := row.Scan(&i.ProjectID, &i.UserID, &i.AddedAt)
+	err := row.Scan(
+		&i.ProjectID,
+		&i.UserID,
+		&i.AddedAt,
+		&i.Admin,
+	)
 	return i, err
 }
 
@@ -47,7 +54,7 @@ func (q *Queries) DeleteUserFromProject(ctx context.Context, arg DeleteUserFromP
 }
 
 const getProjectsByUserID = `-- name: GetProjectsByUserID :many
-SELECT project_id, user_id, added_at FROM usersinproject
+SELECT project_id, user_id, added_at, admin FROM usersinproject
 WHERE user_id = $1
 `
 
@@ -60,7 +67,12 @@ func (q *Queries) GetProjectsByUserID(ctx context.Context, userID uuid.UUID) ([]
 	var items []Usersinproject
 	for rows.Next() {
 		var i Usersinproject
-		if err := rows.Scan(&i.ProjectID, &i.UserID, &i.AddedAt); err != nil {
+		if err := rows.Scan(
+			&i.ProjectID,
+			&i.UserID,
+			&i.AddedAt,
+			&i.Admin,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -75,7 +87,7 @@ func (q *Queries) GetProjectsByUserID(ctx context.Context, userID uuid.UUID) ([]
 }
 
 const getUsersByProjectID = `-- name: GetUsersByProjectID :many
-SELECT project_id, user_id, added_at FROM usersinproject
+SELECT project_id, user_id, added_at, admin FROM usersinproject
 WHERE project_id = $1
 `
 
@@ -88,7 +100,12 @@ func (q *Queries) GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) 
 	var items []Usersinproject
 	for rows.Next() {
 		var i Usersinproject
-		if err := rows.Scan(&i.ProjectID, &i.UserID, &i.AddedAt); err != nil {
+		if err := rows.Scan(
+			&i.ProjectID,
+			&i.UserID,
+			&i.AddedAt,
+			&i.Admin,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

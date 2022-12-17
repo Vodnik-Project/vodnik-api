@@ -1,8 +1,8 @@
 -- name: AddUserToProject :one
 INSERT INTO usersinproject (
-    user_id, project_id
+    user_id, project_id, admin
 ) VALUES (
-    $1, $2
+    $1, $2, $3
 ) RETURNING *;
 
 -- name: GetProjectsByUserID :many

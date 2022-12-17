@@ -68,40 +68,6 @@ func (q *Queries) GetProjectData(ctx context.Context, projectID uuid.UUID) (Proj
 	return i, err
 }
 
-const getProjectsByUserId = `-- name: GetProjectsByUserId :many
-SELECT project_id, title, info, owner_id, created_at FROM projects
-WHERE owner_id = $1
-`
-
-func (q *Queries) GetProjectsByUserId(ctx context.Context, ownerID uuid.UUID) ([]Project, error) {
-	rows, err := q.query(ctx, q.getProjectsByUserIdStmt, getProjectsByUserId, ownerID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Project
-	for rows.Next() {
-		var i Project
-		if err := rows.Scan(
-			&i.ProjectID,
-			&i.Title,
-			&i.Info,
-			&i.OwnerID,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const updateProject = `-- name: UpdateProject :one
 UPDATE projects SET
   title = COALESCE(NULLIF($1, 'NULL'), title),
