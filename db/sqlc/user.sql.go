@@ -18,7 +18,7 @@ INSERT INTO users (
 ) VALUES (
   $1, $2, $3, $4
 )
-RETURNING user_id, username, email, pass_hash, join_date, bio, profile_photo
+RETURNING user_id, username, email, pass_hash, joined_at, bio, profile_photo
 `
 
 type CreateUserParams struct {
@@ -41,7 +41,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Username,
 		&i.Email,
 		&i.PassHash,
-		&i.JoinDate,
+		&i.JoinedAt,
 		&i.Bio,
 		&i.ProfilePhoto,
 	)
@@ -59,7 +59,7 @@ func (q *Queries) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT user_id, username, email, pass_hash, join_date, bio, profile_photo FROM users
+SELECT user_id, username, email, pass_hash, joined_at, bio, profile_photo FROM users
 WHERE email = $1
 `
 
@@ -71,7 +71,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Username,
 		&i.Email,
 		&i.PassHash,
-		&i.JoinDate,
+		&i.JoinedAt,
 		&i.Bio,
 		&i.ProfilePhoto,
 	)
@@ -79,7 +79,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT user_id, username, email, pass_hash, join_date, bio, profile_photo FROM users
+SELECT user_id, username, email, pass_hash, joined_at, bio, profile_photo FROM users
 WHERE user_id = $1
 `
 
@@ -91,7 +91,7 @@ func (q *Queries) GetUserById(ctx context.Context, userID uuid.UUID) (User, erro
 		&i.Username,
 		&i.Email,
 		&i.PassHash,
-		&i.JoinDate,
+		&i.JoinedAt,
 		&i.Bio,
 		&i.ProfilePhoto,
 	)
@@ -99,7 +99,7 @@ func (q *Queries) GetUserById(ctx context.Context, userID uuid.UUID) (User, erro
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT user_id, username, email, pass_hash, join_date, bio, profile_photo FROM users
+SELECT user_id, username, email, pass_hash, joined_at, bio, profile_photo FROM users
 WHERE username = $1
 `
 
@@ -111,7 +111,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.Username,
 		&i.Email,
 		&i.PassHash,
-		&i.JoinDate,
+		&i.JoinedAt,
 		&i.Bio,
 		&i.ProfilePhoto,
 	)
@@ -124,7 +124,7 @@ UPDATE users SET
   email = COALESCE(NULLIF($2, 'NULL'), email),
   bio = COALESCE(NULLIF($3, 'NULL'), bio)
 WHERE user_id = $4
-RETURNING user_id, username, email, pass_hash, join_date, bio, profile_photo
+RETURNING user_id, username, email, pass_hash, joined_at, bio, profile_photo
 `
 
 type UpdateUserParams struct {
@@ -147,7 +147,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Username,
 		&i.Email,
 		&i.PassHash,
-		&i.JoinDate,
+		&i.JoinedAt,
 		&i.Bio,
 		&i.ProfilePhoto,
 	)

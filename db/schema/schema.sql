@@ -5,7 +5,7 @@ CREATE TABLE "users" (
   "username" varchar UNIQUE NOT NULL,
   "email" varchar UNIQUE NOT NULL,
   "pass_hash" varchar NOT NULL,
-  "join_date" timestamptz NOT NULL DEFAULT (now()),
+  "joined_at" timestamptz NOT NULL DEFAULT (now()),
   "bio" varchar,
   "profile_photo" varchar
 );

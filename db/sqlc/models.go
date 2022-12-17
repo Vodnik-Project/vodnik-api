@@ -44,7 +44,7 @@ type User struct {
 	Username     string         `json:"username"`
 	Email        string         `json:"email"`
 	PassHash     string         `json:"pass_hash"`
-	JoinDate     time.Time      `json:"join_date"`
+	JoinedAt     time.Time      `json:"joined_at"`
 	Bio          sql.NullString `json:"bio"`
 	ProfilePhoto sql.NullString `json:"profile_photo"`
 }

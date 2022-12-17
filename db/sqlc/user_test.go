@@ -86,7 +86,7 @@ func TestUpdateUser(t *testing.T) {
 	require.Equal(t, randomuser.PassHash, user.PassHash)
 	require.Equal(t, randomuser.Bio, user.Bio)
 	require.Equal(t, randomuser.UserID, user.UserID)
-	require.Equal(t, randomuser.JoinDate, user.JoinDate)
+	require.Equal(t, randomuser.JoinedAt, user.JoinedAt)
 }
 
 func TestDeleteUser(t *testing.T) {
