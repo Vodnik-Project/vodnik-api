@@ -52,7 +52,7 @@ func (s Server) Login(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, msg.Error())
 	}
 	oldSession, err := s.queries.GetDeviceSession(c.Request().Context(), sqlc.GetDeviceSessionParams{
-		Username:    user.Username,
+		UserID:      user.UserID,
 		Fingerprint: sessionID,
 	})
 	if err != sql.ErrNoRows {
@@ -60,7 +60,7 @@ func (s Server) Login(c echo.Context) error {
 	}
 	err = s.queries.SetSession(c.Request().Context(), sqlc.SetSessionParams{
 		Token:       refreshToken,
-		Username:    user.Username,
+		UserID:      user.UserID,
 		Fingerprint: sessionID,
 		Device:      c.Request().UserAgent(),
 	})
@@ -95,15 +95,22 @@ func (s Server) Refresh_token(c echo.Context) error {
 	}
 	session, err := s.queries.GetSessionByToken(c.Request().Context(), refreshToken.RefreshToken)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, "Not a valid refresh token")
+		return c.JSON(http.StatusUnauthorized, "not a valid refresh token")
 	}
-	if refreshToken.Username != session.Username {
-		return c.JSON(http.StatusUnauthorized, "Username is wrong")
+	user, err := s.queries.GetUserByUsername(c.Request().Context(), refreshToken.Username)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	if user.UserID != session.UserID {
+		return c.JSON(http.StatusUnauthorized, "not valid user")
+	}
+	if user.Username != refreshToken.Username {
+		return c.JSON(http.StatusUnauthorized, "not valid user")
 	}
 	sessionID := util.GetSessionID(c.Request().UserAgent(), c.Request().Header.Get("Accept-Language"))
 
 	if sessionID != session.Fingerprint {
-		return c.JSON(http.StatusUnauthorized, "Not valid user")
+		return c.JSON(http.StatusUnauthorized, "not valid user")
 	}
 
 	accessToken, err := s.tokenMaker.CreateAccessToken(refreshToken.Username)
