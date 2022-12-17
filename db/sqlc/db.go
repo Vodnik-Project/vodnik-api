@@ -57,6 +57,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteUserFromTaskStmt, err = db.PrepareContext(ctx, deleteUserFromTask); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUserFromTask: %w", err)
 	}
+	if q.getDeviceSessionStmt, err = db.PrepareContext(ctx, getDeviceSession); err != nil {
+		return nil, fmt.Errorf("error preparing query GetDeviceSession: %w", err)
+	}
 	if q.getProjectDataStmt, err = db.PrepareContext(ctx, getProjectData); err != nil {
 		return nil, fmt.Errorf("error preparing query GetProjectData: %w", err)
 	}
@@ -68,9 +71,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getSessionByTokenStmt, err = db.PrepareContext(ctx, getSessionByToken); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSessionByToken: %w", err)
-	}
-	if q.getSessionByUsernameStmt, err = db.PrepareContext(ctx, getSessionByUsername); err != nil {
-		return nil, fmt.Errorf("error preparing query GetSessionByUsername: %w", err)
 	}
 	if q.getTaskDataStmt, err = db.PrepareContext(ctx, getTaskData); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTaskData: %w", err)
@@ -168,6 +168,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing deleteUserFromTaskStmt: %w", cerr)
 		}
 	}
+	if q.getDeviceSessionStmt != nil {
+		if cerr := q.getDeviceSessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getDeviceSessionStmt: %w", cerr)
+		}
+	}
 	if q.getProjectDataStmt != nil {
 		if cerr := q.getProjectDataStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getProjectDataStmt: %w", cerr)
@@ -186,11 +191,6 @@ func (q *Queries) Close() error {
 	if q.getSessionByTokenStmt != nil {
 		if cerr := q.getSessionByTokenStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getSessionByTokenStmt: %w", cerr)
-		}
-	}
-	if q.getSessionByUsernameStmt != nil {
-		if cerr := q.getSessionByUsernameStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getSessionByUsernameStmt: %w", cerr)
 		}
 	}
 	if q.getTaskDataStmt != nil {
@@ -303,11 +303,11 @@ type Queries struct {
 	deleteUserStmt            *sql.Stmt
 	deleteUserFromProjectStmt *sql.Stmt
 	deleteUserFromTaskStmt    *sql.Stmt
+	getDeviceSessionStmt      *sql.Stmt
 	getProjectDataStmt        *sql.Stmt
 	getProjectsByUserIDStmt   *sql.Stmt
 	getProjectsByUserIdStmt   *sql.Stmt
 	getSessionByTokenStmt     *sql.Stmt
-	getSessionByUsernameStmt  *sql.Stmt
 	getTaskDataStmt           *sql.Stmt
 	getTasksByProjectIDStmt   *sql.Stmt
 	getTasksByUserIDStmt      *sql.Stmt
@@ -337,11 +337,11 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteUserStmt:            q.deleteUserStmt,
 		deleteUserFromProjectStmt: q.deleteUserFromProjectStmt,
 		deleteUserFromTaskStmt:    q.deleteUserFromTaskStmt,
+		getDeviceSessionStmt:      q.getDeviceSessionStmt,
 		getProjectDataStmt:        q.getProjectDataStmt,
 		getProjectsByUserIDStmt:   q.getProjectsByUserIDStmt,
 		getProjectsByUserIdStmt:   q.getProjectsByUserIdStmt,
 		getSessionByTokenStmt:     q.getSessionByTokenStmt,
-		getSessionByUsernameStmt:  q.getSessionByUsernameStmt,
 		getTaskDataStmt:           q.getTaskDataStmt,
 		getTasksByProjectIDStmt:   q.getTasksByProjectIDStmt,
 		getTasksByUserIDStmt:      q.getTasksByUserIDStmt,

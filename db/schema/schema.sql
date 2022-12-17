@@ -51,7 +51,8 @@ CREATE TABLE "usersintask" (
 CREATE TABLE "refresh_token" (
   "token" varchar PRIMARY KEY,
   "username" varchar NOT NULL,
-  "fingerprint" varchar NOT NULL
+  "fingerprint" varchar NOT NULL,
+  "device" varchar NOT NULL
 );
 
 CREATE INDEX ON "users" ("user_id");

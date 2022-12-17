@@ -23,6 +23,7 @@ type RefreshToken struct {
 	Token       string `json:"token"`
 	Username    string `json:"username"`
 	Fingerprint string `json:"fingerprint"`
+	Device      string `json:"device"`
 }
 
 type Task struct {

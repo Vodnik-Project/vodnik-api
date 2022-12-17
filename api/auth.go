@@ -51,13 +51,18 @@ func (s Server) Login(c echo.Context) error {
 		msg := fmt.Errorf("can't create refresh token: %v", err)
 		return c.JSON(http.StatusInternalServerError, msg.Error())
 	}
-	if oldSession, err := s.queries.GetSessionByUsername(c.Request().Context(), user.Username); err != sql.ErrNoRows {
+	oldSession, err := s.queries.GetDeviceSession(c.Request().Context(), sqlc.GetDeviceSessionParams{
+		Username:    user.Username,
+		Fingerprint: sessionID,
+	})
+	if err != sql.ErrNoRows {
 		s.queries.DeleteSession(c.Request().Context(), oldSession.Token)
 	}
 	err = s.queries.SetSession(c.Request().Context(), sqlc.SetSessionParams{
 		Token:       refreshToken,
 		Username:    user.Username,
 		Fingerprint: sessionID,
+		Device:      c.Request().UserAgent(),
 	})
 	if err != nil {
 		msg := fmt.Errorf("can't save refresh token to db: %v", err)
@@ -90,7 +95,7 @@ func (s Server) Refresh_token(c echo.Context) error {
 	}
 	session, err := s.queries.GetSessionByToken(c.Request().Context(), refreshToken.RefreshToken)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, "No refresh token found")
+		return c.JSON(http.StatusUnauthorized, "Not a valid refresh token")
 	}
 	if refreshToken.Username != session.Username {
 		return c.JSON(http.StatusUnauthorized, "Username is wrong")

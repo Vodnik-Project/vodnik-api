@@ -19,35 +19,50 @@ func (q *Queries) DeleteSession(ctx context.Context, token string) error {
 	return err
 }
 
+const getDeviceSession = `-- name: GetDeviceSession :one
+SELECT token, username, fingerprint, device FROM refresh_token
+WHERE username = $1 AND fingerprint = $2
+`
+
+type GetDeviceSessionParams struct {
+	Username    string `json:"username"`
+	Fingerprint string `json:"fingerprint"`
+}
+
+func (q *Queries) GetDeviceSession(ctx context.Context, arg GetDeviceSessionParams) (RefreshToken, error) {
+	row := q.queryRow(ctx, q.getDeviceSessionStmt, getDeviceSession, arg.Username, arg.Fingerprint)
+	var i RefreshToken
+	err := row.Scan(
+		&i.Token,
+		&i.Username,
+		&i.Fingerprint,
+		&i.Device,
+	)
+	return i, err
+}
+
 const getSessionByToken = `-- name: GetSessionByToken :one
-SELECT token, username, fingerprint FROM refresh_token
+SELECT token, username, fingerprint, device FROM refresh_token
 WHERE token = $1
 `
 
 func (q *Queries) GetSessionByToken(ctx context.Context, token string) (RefreshToken, error) {
 	row := q.queryRow(ctx, q.getSessionByTokenStmt, getSessionByToken, token)
 	var i RefreshToken
-	err := row.Scan(&i.Token, &i.Username, &i.Fingerprint)
-	return i, err
-}
-
-const getSessionByUsername = `-- name: GetSessionByUsername :one
-SELECT token, username, fingerprint FROM refresh_token
-WHERE username = $1
-`
-
-func (q *Queries) GetSessionByUsername(ctx context.Context, username string) (RefreshToken, error) {
-	row := q.queryRow(ctx, q.getSessionByUsernameStmt, getSessionByUsername, username)
-	var i RefreshToken
-	err := row.Scan(&i.Token, &i.Username, &i.Fingerprint)
+	err := row.Scan(
+		&i.Token,
+		&i.Username,
+		&i.Fingerprint,
+		&i.Device,
+	)
 	return i, err
 }
 
 const setSession = `-- name: SetSession :exec
 INSERT INTO refresh_token (
-    token, username, fingerprint
+    token, username, fingerprint, device
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4
 )
 `
 
@@ -55,9 +70,15 @@ type SetSessionParams struct {
 	Token       string `json:"token"`
 	Username    string `json:"username"`
 	Fingerprint string `json:"fingerprint"`
+	Device      string `json:"device"`
 }
 
 func (q *Queries) SetSession(ctx context.Context, arg SetSessionParams) error {
-	_, err := q.exec(ctx, q.setSessionStmt, setSession, arg.Token, arg.Username, arg.Fingerprint)
+	_, err := q.exec(ctx, q.setSessionStmt, setSession,
+		arg.Token,
+		arg.Username,
+		arg.Fingerprint,
+		arg.Device,
+	)
 	return err
 }
