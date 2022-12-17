@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
 )
 
 type Token struct {
@@ -15,8 +14,8 @@ type Token struct {
 }
 
 type TokenMaker interface {
-	CreateAccessToken(userID uuid.UUID) (string, error)
-	CreateRefreshToken(sessionID string) (string, error)
+	CreateAccessToken(username string) (string, error)
+	CreateRefreshToken() (string, error)
 }
 
 func NewTokenMaker(token Token) Token {
@@ -28,8 +27,8 @@ func NewTokenMaker(token Token) Token {
 	return t
 }
 
-func (t Token) CreateAccessToken(userID uuid.UUID) (string, error) {
-	p := NewAccessTokenPayload(userID, t.AccessTokenDuration)
+func (t Token) CreateAccessToken(username string) (string, error) {
+	p := NewAccessTokenPayload(username, t.AccessTokenDuration)
 	if err := p.Valid(); err != nil {
 		return "", fmt.Errorf("payload is not valid: %v", err)
 	}
@@ -41,8 +40,8 @@ func (t Token) CreateAccessToken(userID uuid.UUID) (string, error) {
 	return tk, nil
 }
 
-func (t Token) CreateRefreshToken(sessionID string) (string, error) {
-	p := NewRefreshTokenPayload(sessionID, t.RefreshTokenDuration)
+func (t Token) CreateRefreshToken() (string, error) {
+	p := NewRefreshTokenPayload(t.RefreshTokenDuration)
 	if err := p.Valid(); err != nil {
 		return "", fmt.Errorf("payload is not valid: %v", err)
 	}

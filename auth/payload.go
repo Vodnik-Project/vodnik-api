@@ -3,33 +3,29 @@ package auth
 import (
 	"fmt"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type AccessTokenPayload struct {
-	User_ID   uuid.UUID
+	Username  string
 	IssuedAt  int64
 	ExpiresAt int64
 }
 
 type RefreshTokenPayload struct {
-	ID        string
 	IssuedAt  int64
 	ExpiresAt int64
 }
 
-func NewAccessTokenPayload(userID uuid.UUID, duration time.Duration) AccessTokenPayload {
+func NewAccessTokenPayload(username string, duration time.Duration) AccessTokenPayload {
 	p := AccessTokenPayload{
-		User_ID:   userID,
+		Username:  username,
 		IssuedAt:  time.Now().Unix(),
 		ExpiresAt: time.Now().Add(duration).Unix(),
 	}
 	return p
 }
-func NewRefreshTokenPayload(sessionID string, duration time.Duration) RefreshTokenPayload {
+func NewRefreshTokenPayload(duration time.Duration) RefreshTokenPayload {
 	p := RefreshTokenPayload{
-		ID:        sessionID,
 		IssuedAt:  time.Now().Unix(),
 		ExpiresAt: time.Now().Add(duration).Unix(),
 	}
