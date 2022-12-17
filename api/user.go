@@ -1,11 +1,11 @@
 package api
 
 import (
-	"crypto/sha256"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	"github.com/Vodnik-Project/vodnik-api/util"
@@ -32,12 +32,11 @@ func (s *Server) CreateUser(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"err": err.Error()})
 	}
-	passHash := sha256.Sum256([]byte(user.Password))
-	passHashHex := hex.EncodeToString(passHash[:])
+	passHash := util.PassHash(user.Password)
 	createdUser, err := s.queries.CreateUser(c.Request().Context(), sqlc.CreateUserParams{
 		Username: user.Username,
 		Email:    user.Email,
-		PassHash: passHashHex,
+		PassHash: passHash,
 		Bio:      sql.NullString{String: user.Bio, Valid: true},
 	})
 	if err != nil {
@@ -47,12 +46,64 @@ func (s *Server) CreateUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, createdUser)
 }
 
+type userDataRespond struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Bio      string `json:"bio"`
+	JoinedAt string `json:"joinedAt"`
+}
+
 func (s *Server) GetUserData(c echo.Context) error {
-	return nil
+	token := strings.Split(c.Request().Header.Get("authorization"), " ")[1]
+	payload, err := s.tokenMaker.TokenParser(token)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	userData, err := s.queries.GetUserByUsername(c.Request().Context(), payload.Username)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "can't get data from db")
+	}
+	return c.JSON(http.StatusOK, userDataRespond{
+		Username: userData.Username,
+		Email:    userData.Email,
+		Bio:      userData.Bio.String,
+		JoinedAt: userData.JoinedAt.Format(time.RFC3339),
+	})
+}
+
+type updateUserRequest struct {
+	NewUsername string `json:"username"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	Bio         string `json:"bio"`
 }
 
 func (s *Server) UpdateUser(c echo.Context) error {
-	return nil
+	token := strings.Split(c.Request().Header.Get("authorization"), " ")[1]
+	payload, err := s.tokenMaker.TokenParser(token)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	var updateData updateUserRequest
+	err = c.Bind(&updateData)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "can't bind input data")
+	}
+	if updateData.Password != "" {
+		updateData.Password = util.PassHash(updateData.Password)
+	}
+	_, err = s.queries.UpdateUser(c.Request().Context(), sqlc.UpdateUserParams{
+		Username:    payload.Username,
+		NewUsername: updateData.NewUsername,
+		Email:       updateData.Email,
+		PassHash:    updateData.Password,
+		Bio:         updateData.Bio,
+	})
+	if err != nil {
+		msg := fmt.Errorf("can't update data to db: %v", err)
+		return c.JSON(http.StatusInternalServerError, msg.Error())
+	}
+	return c.JSON(http.StatusOK, "user data updated succesfully")
 }
 
 func (s *Server) DeleteUser(c echo.Context) error {
