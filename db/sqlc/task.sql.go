@@ -94,13 +94,13 @@ func (q *Queries) GetTaskData(ctx context.Context, taskID uuid.UUID) (Task, erro
 	return i, err
 }
 
-const getTasksInProject = `-- name: GetTasksInProject :many
+const getTasksByProjectID = `-- name: GetTasksByProjectID :many
 SELECT task_id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color FROM tasks
 WHERE project_id = $1
 `
 
-func (q *Queries) GetTasksInProject(ctx context.Context, projectID uuid.UUID) ([]Task, error) {
-	rows, err := q.query(ctx, q.getTasksInProjectStmt, getTasksInProject, projectID)
+func (q *Queries) GetTasksByProjectID(ctx context.Context, projectID uuid.UUID) ([]Task, error) {
+	rows, err := q.query(ctx, q.getTasksByProjectIDStmt, getTasksByProjectID, projectID)
 	if err != nil {
 		return nil, err
 	}

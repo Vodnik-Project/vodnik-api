@@ -8,7 +8,7 @@ INSERT INTO tasks (
 )
 RETURNING *;
 
--- name: GetTasksInProject :many
+-- name: GetTasksByProjectID :many
 SELECT * FROM tasks
 WHERE project_id = $1;
 

@@ -46,13 +46,13 @@ func (q *Queries) DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTask
 	return err
 }
 
-const getTasksOfUser = `-- name: GetTasksOfUser :many
+const getTasksByUserID = `-- name: GetTasksByUserID :many
 SELECT task_id, user_id, added_at FROM usersintask
 WHERE user_id = $1
 `
 
-func (q *Queries) GetTasksOfUser(ctx context.Context, userID uuid.UUID) ([]Usersintask, error) {
-	rows, err := q.query(ctx, q.getTasksOfUserStmt, getTasksOfUser, userID)
+func (q *Queries) GetTasksByUserID(ctx context.Context, userID uuid.UUID) ([]Usersintask, error) {
+	rows, err := q.query(ctx, q.getTasksByUserIDStmt, getTasksByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -74,13 +74,13 @@ func (q *Queries) GetTasksOfUser(ctx context.Context, userID uuid.UUID) ([]Users
 	return items, nil
 }
 
-const getUsersOfTask = `-- name: GetUsersOfTask :many
+const getUsersByTaskID = `-- name: GetUsersByTaskID :many
 SELECT task_id, user_id, added_at FROM usersintask
 WHERE task_id = $1
 `
 
-func (q *Queries) GetUsersOfTask(ctx context.Context, taskID uuid.UUID) ([]Usersintask, error) {
-	rows, err := q.query(ctx, q.getUsersOfTaskStmt, getUsersOfTask, taskID)
+func (q *Queries) GetUsersByTaskID(ctx context.Context, taskID uuid.UUID) ([]Usersintask, error) {
+	rows, err := q.query(ctx, q.getUsersByTaskIDStmt, getUsersByTaskID, taskID)
 	if err != nil {
 		return nil, err
 	}

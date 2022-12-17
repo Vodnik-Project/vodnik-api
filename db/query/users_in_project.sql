@@ -5,11 +5,11 @@ INSERT INTO usersinproject (
     $1, $2
 ) RETURNING *;
 
--- name: GetProjectsOfUser :many
+-- name: GetProjectsByUserID :many
 SELECT * FROM usersinproject
 WHERE user_id = $1;
 
--- name: GetUsersOfProject :many
+-- name: GetUsersByProjectID :many
 SELECT * FROM usersinproject
 WHERE project_id = $1;
 
