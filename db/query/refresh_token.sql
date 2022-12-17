@@ -1,6 +1,6 @@
 -- name: SetSession :exec
 INSERT INTO refresh_token (
-    token, username, fingerprint, device
+    token, user_id, fingerprint, device
 ) VALUES (
     $1, $2, $3, $4
 );
@@ -11,7 +11,7 @@ WHERE token = $1;
 
 -- name: GetDeviceSession :one
 SELECT * FROM refresh_token
-WHERE username = $1 AND fingerprint = $2;
+WHERE user_id = $1 AND fingerprint = $2;
 
 -- name: DeleteSession :exec
 DELETE FROM refresh_token

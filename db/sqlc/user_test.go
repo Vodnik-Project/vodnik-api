@@ -75,8 +75,8 @@ func TestUpdateUser(t *testing.T) {
 	randomuser := createrandomuser(t)
 	newUsername := util.RandomString(5)
 	user, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
-		Username: newUsername,
-		ID:       randomuser.UserID,
+		NewUsername: newUsername,
+		Username:    randomuser.Username,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, user)

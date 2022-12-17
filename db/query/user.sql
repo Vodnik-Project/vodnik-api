@@ -20,10 +20,11 @@ WHERE username = $1;
 
 -- name: UpdateUser :one
 UPDATE users SET
-  username = COALESCE(NULLIF(@username, 'NULL'), username),
-  email = COALESCE(NULLIF(@email, 'NULL'), email),
-  bio = COALESCE(NULLIF(@bio, 'NULL'), bio)
-WHERE user_id = @id
+  username = COALESCE(NULLIF(@new_username, ''), username),
+  email = COALESCE(NULLIF(@email, ''), email),
+  pass_hash = COALESCE(NULLIF(@pass_hash, ''), pass_hash),
+  bio = COALESCE(NULLIF(@bio, ''), bio)
+WHERE username = @username
 RETURNING *;
 
 -- name: DeleteUser :exec

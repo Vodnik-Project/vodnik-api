@@ -20,10 +20,10 @@ type Project struct {
 }
 
 type RefreshToken struct {
-	Token       string `json:"token"`
-	Username    string `json:"username"`
-	Fingerprint string `json:"fingerprint"`
-	Device      string `json:"device"`
+	Token       string    `json:"token"`
+	UserID      uuid.UUID `json:"user_id"`
+	Fingerprint string    `json:"fingerprint"`
+	Device      string    `json:"device"`
 }
 
 type Task struct {

@@ -52,7 +52,7 @@ CREATE TABLE "usersintask" (
 
 CREATE TABLE "refresh_token" (
   "token" varchar PRIMARY KEY,
-  "username" varchar NOT NULL,
+  "user_id" uuid  NOT NULL,
   "fingerprint" varchar NOT NULL,
   "device" varchar NOT NULL
 );
@@ -95,6 +95,6 @@ ALTER TABLE "usersinproject" ADD CONSTRAINT "uq_usersinproject" UNIQUE("project_
 
 ALTER TABLE "usersintask" ADD CONSTRAINT "uq_usersintask" UNIQUE("task_id", "user_id");
 
-ALTER TABLE "refresh_token" ADD FOREIGN KEY ("username") REFERENCES "users" ("username");
+ALTER TABLE "refresh_token" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
 
-ALTER TABLE "refresh_token" ADD CONSTRAINT "uq_refresh_token" UNIQUE("username", "fingerprint");
+ALTER TABLE "refresh_token" ADD CONSTRAINT "uq_refresh_token" UNIQUE("user_id", "fingerprint");

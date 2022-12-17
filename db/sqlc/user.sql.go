@@ -120,26 +120,29 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users SET
-  username = COALESCE(NULLIF($1, 'NULL'), username),
-  email = COALESCE(NULLIF($2, 'NULL'), email),
-  bio = COALESCE(NULLIF($3, 'NULL'), bio)
-WHERE user_id = $4
+  username = COALESCE(NULLIF($1, ''), username),
+  email = COALESCE(NULLIF($2, ''), email),
+  pass_hash = COALESCE(NULLIF($3, ''), pass_hash),
+  bio = COALESCE(NULLIF($4, ''), bio)
+WHERE username = $5
 RETURNING user_id, username, email, pass_hash, joined_at, bio, profile_photo
 `
 
 type UpdateUserParams struct {
-	Username interface{} `json:"username"`
-	Email    interface{} `json:"email"`
-	Bio      interface{} `json:"bio"`
-	ID       uuid.UUID   `json:"id"`
+	NewUsername interface{} `json:"new_username"`
+	Email       interface{} `json:"email"`
+	PassHash    interface{} `json:"pass_hash"`
+	Bio         interface{} `json:"bio"`
+	Username    string      `json:"username"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	row := q.queryRow(ctx, q.updateUserStmt, updateUser,
-		arg.Username,
+		arg.NewUsername,
 		arg.Email,
+		arg.PassHash,
 		arg.Bio,
-		arg.ID,
+		arg.Username,
 	)
 	var i User
 	err := row.Scan(
