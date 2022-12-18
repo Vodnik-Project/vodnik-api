@@ -92,7 +92,7 @@ func TestUpdateUser(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 	randomuser := createrandomuser(t)
 
-	err := testQueries.DeleteUser(context.Background(), randomuser.UserID)
+	err := testQueries.DeleteUser(context.Background(), randomuser.Username)
 	require.NoError(t, err)
 
 	user, err := testQueries.GetUserById(context.Background(), randomuser.UserID)

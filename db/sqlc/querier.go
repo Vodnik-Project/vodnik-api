@@ -20,7 +20,7 @@ type Querier interface {
 	DeleteProject(ctx context.Context, projectID uuid.UUID) error
 	DeleteSession(ctx context.Context, token string) error
 	DeleteTask(ctx context.Context, taskID uuid.UUID) error
-	DeleteUser(ctx context.Context, userID uuid.UUID) error
+	DeleteUser(ctx context.Context, username string) error
 	DeleteUserFromProject(ctx context.Context, arg DeleteUserFromProjectParams) error
 	DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTaskParams) error
 	GetDeviceSession(ctx context.Context, arg GetDeviceSessionParams) (RefreshToken, error)
