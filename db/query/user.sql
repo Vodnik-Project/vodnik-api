@@ -14,19 +14,15 @@ WHERE user_id = $1;
 SELECT * FROM users
 WHERE email = $1;
 
--- name: GetUserByUsername :one
-SELECT * FROM users
-WHERE username = $1;
-
 -- name: UpdateUser :one
 UPDATE users SET
-  username = COALESCE(NULLIF(@new_username, ''), username),
+  username = COALESCE(NULLIF(@username, ''), username),
   email = COALESCE(NULLIF(@email, ''), email),
   pass_hash = COALESCE(NULLIF(@pass_hash, ''), pass_hash),
   bio = COALESCE(NULLIF(@bio, ''), bio)
-WHERE username = @username
+WHERE user_id = @user_id
 RETURNING *;
 
 -- name: DeleteUser :exec
 DELETE FROM users
-WHERE username = $1;
+WHERE user_id = $1;
