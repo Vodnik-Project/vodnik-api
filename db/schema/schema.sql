@@ -59,8 +59,6 @@ CREATE TABLE "refresh_token" (
 
 CREATE INDEX ON "users" ("user_id");
 
-CREATE INDEX ON "users" ("username");
-
 CREATE INDEX ON "users" ("email");
 
 CREATE INDEX ON "usersetting" ("user_id");
