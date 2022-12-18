@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"reflect"
 	"time"
 
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
@@ -55,11 +54,8 @@ type userDataRespond struct {
 
 func (s *Server) GetUserData(c echo.Context) error {
 	ctx := c.Request().Context()
-	payload := reflect.ValueOf(c.Get("user")).Elem()
-	claims := payload.FieldByName("Claims").Elem()
-	username := claims.Elem().FieldByName("Username")
-
-	userData, err := s.queries.GetUserByUsername(ctx, username.String())
+	username := util.GetUsername(c)
+	userData, err := s.queries.GetUserByUsername(ctx, username)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "can't get data from db")
 	}
@@ -80,10 +76,7 @@ type updateUserRequest struct {
 
 func (s *Server) UpdateUser(c echo.Context) error {
 	ctx := c.Request().Context()
-	payload := reflect.ValueOf(c.Get("user")).Elem()
-	claims := payload.FieldByName("Claims").Elem()
-	username := claims.Elem().FieldByName("Username")
-
+	username := util.GetUsername(c)
 	var updateData updateUserRequest
 	err := c.Bind(&updateData)
 	if err != nil {
@@ -93,7 +86,7 @@ func (s *Server) UpdateUser(c echo.Context) error {
 		updateData.Password = util.PassHash(updateData.Password)
 	}
 	_, err = s.queries.UpdateUser(ctx, sqlc.UpdateUserParams{
-		Username:    username.String(),
+		Username:    username,
 		NewUsername: updateData.NewUsername,
 		Email:       updateData.Email,
 		PassHash:    updateData.Password,
