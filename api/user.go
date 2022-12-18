@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strings"
+	"reflect"
 	"time"
 
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
@@ -54,12 +54,12 @@ type userDataRespond struct {
 }
 
 func (s *Server) GetUserData(c echo.Context) error {
-	token := strings.Split(c.Request().Header.Get("authorization"), " ")[1]
-	payload, err := s.tokenMaker.TokenParser(token)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	userData, err := s.queries.GetUserByUsername(c.Request().Context(), payload.Username)
+	ctx := c.Request().Context()
+	payload := reflect.ValueOf(c.Get("user")).Elem()
+	claims := payload.FieldByName("Claims").Elem()
+	username := claims.Elem().FieldByName("Username")
+
+	userData, err := s.queries.GetUserByUsername(ctx, username.String())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "can't get data from db")
 	}
@@ -79,21 +79,21 @@ type updateUserRequest struct {
 }
 
 func (s *Server) UpdateUser(c echo.Context) error {
-	token := strings.Split(c.Request().Header.Get("authorization"), " ")[1]
-	payload, err := s.tokenMaker.TokenParser(token)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
+	ctx := c.Request().Context()
+	payload := reflect.ValueOf(c.Get("user")).Elem()
+	claims := payload.FieldByName("Claims").Elem()
+	username := claims.Elem().FieldByName("Username")
+
 	var updateData updateUserRequest
-	err = c.Bind(&updateData)
+	err := c.Bind(&updateData)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "can't bind input data")
 	}
 	if updateData.Password != "" {
 		updateData.Password = util.PassHash(updateData.Password)
 	}
-	_, err = s.queries.UpdateUser(c.Request().Context(), sqlc.UpdateUserParams{
-		Username:    payload.Username,
+	_, err = s.queries.UpdateUser(ctx, sqlc.UpdateUserParams{
+		Username:    username.String(),
 		NewUsername: updateData.NewUsername,
 		Email:       updateData.Email,
 		PassHash:    updateData.Password,
