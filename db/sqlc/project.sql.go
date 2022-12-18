@@ -9,7 +9,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 )
 
 const createProject = `-- name: CreateProject :one
@@ -24,7 +24,7 @@ RETURNING project_id, title, info, owner_id, created_at
 type CreateProjectParams struct {
 	Title   string         `json:"title"`
 	Info    sql.NullString `json:"info"`
-	OwnerID uuid.UUID      `json:"owner_id"`
+	OwnerID uuid.NullUUID  `json:"owner_id"`
 }
 
 func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {

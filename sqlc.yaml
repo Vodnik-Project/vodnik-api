@@ -11,7 +11,9 @@ sql:
         emit_json_tags: true
         emit_prepared_queries: true
         emit_interface: true
-        # overrides:
-        # - db_type: "pg_catalog.varchar"
-        #   nullable: true
-        #   go_type: "string"
+        overrides:
+        - db_type: "uuid"
+          go_type: "github.com/gofrs/uuid.UUID"
+        - db_type: "uuid"
+          nullable: true
+          go_type: "github.com/gofrs/uuid.NullUUID"

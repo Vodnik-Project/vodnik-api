@@ -9,7 +9,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 )
 
 const createTask = `-- name: CreateTask :one
@@ -27,7 +27,7 @@ type CreateTaskParams struct {
 	Title     string         `json:"title"`
 	Info      sql.NullString `json:"info"`
 	Tag       sql.NullString `json:"tag"`
-	CreatedBy uuid.UUID      `json:"created_by"`
+	CreatedBy uuid.NullUUID  `json:"created_by"`
 	Beggining sql.NullTime   `json:"beggining"`
 	Deadline  sql.NullTime   `json:"deadline"`
 	Color     sql.NullString `json:"color"`

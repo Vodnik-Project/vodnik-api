@@ -12,7 +12,7 @@ func (s SQLStore) CreateProjectTx(ctx context.Context, args CreateProjectParams)
 			return err
 		}
 		_, err = s.Queries.AddUserToProject(ctx, AddUserToProjectParams{
-			UserID:    args.OwnerID,
+			UserID:    args.OwnerID.UUID,
 			ProjectID: project.ProjectID,
 			Admin:     sql.NullBool{Bool: true, Valid: true},
 		})

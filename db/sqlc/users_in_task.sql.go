@@ -9,7 +9,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 )
 
 const addUserToTask = `-- name: AddUserToTask :one

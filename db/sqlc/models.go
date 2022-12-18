@@ -8,14 +8,14 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 )
 
 type Project struct {
 	ProjectID uuid.UUID      `json:"project_id"`
 	Title     string         `json:"title"`
 	Info      sql.NullString `json:"info"`
-	OwnerID   uuid.UUID      `json:"owner_id"`
+	OwnerID   uuid.NullUUID  `json:"owner_id"`
 	CreatedAt sql.NullTime   `json:"created_at"`
 }
 
@@ -32,7 +32,7 @@ type Task struct {
 	Title     string         `json:"title"`
 	Info      sql.NullString `json:"info"`
 	Tag       sql.NullString `json:"tag"`
-	CreatedBy uuid.UUID      `json:"created_by"`
+	CreatedBy uuid.NullUUID  `json:"created_by"`
 	CreatedAt sql.NullTime   `json:"created_at"`
 	Beggining sql.NullTime   `json:"beggining"`
 	Deadline  sql.NullTime   `json:"deadline"`

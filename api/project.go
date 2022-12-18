@@ -6,6 +6,7 @@ import (
 
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	"github.com/Vodnik-Project/vodnik-api/util"
+	"github.com/gofrs/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -33,7 +34,7 @@ func (s Server) CreateProject(c echo.Context) error {
 	err = s.store.CreateProjectTx(ctx, sqlc.CreateProjectParams{
 		Title:   project.Title,
 		Info:    sql.NullString{String: project.Info, Valid: true},
-		OwnerID: userID.UserID,
+		OwnerID: uuid.NullUUID{UUID: userID.UserID, Valid: true},
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "can't create project")
