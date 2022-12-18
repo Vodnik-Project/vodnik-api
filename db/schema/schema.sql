@@ -19,7 +19,7 @@ CREATE TABLE "projects" (
   "project_id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   "title" varchar NOT NULL,
   "info" varchar,
-  "owner_id" uuid NOT NULL,
+  "owner_id" uuid,
   "created_at" timestamptz DEFAULT (now())
 );
 
@@ -29,7 +29,7 @@ CREATE TABLE "tasks" (
   "title" varchar NOT NULL,
   "info" varchar,
   "tag" varchar,
-  "created_by" uuid NOT NULL,
+  "created_by" uuid,
   "created_at" timestamptz DEFAULT (now()),
   "beggining" timestamptz DEFAULT (now()),
   "deadline" timestamptz,
@@ -75,26 +75,26 @@ CREATE INDEX ON "tasks" ("project_id");
 
 CREATE INDEX ON "refresh_token" ("token");
 
-ALTER TABLE "usersetting" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
+ALTER TABLE "usersetting" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id") ON DELETE CASCADE;
 
-ALTER TABLE "projects" ADD FOREIGN KEY ("owner_id") REFERENCES "users" ("user_id");
+ALTER TABLE "projects" ADD FOREIGN KEY ("owner_id") REFERENCES "users" ("user_id") ON DELETE SET DEFAULT;
 
-ALTER TABLE "tasks" ADD FOREIGN KEY ("project_id") REFERENCES "projects" ("project_id");
+ALTER TABLE "tasks" ADD FOREIGN KEY ("project_id") REFERENCES "projects" ("project_id") ON DELETE CASCADE;
 
-ALTER TABLE "tasks" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("user_id");
+ALTER TABLE "tasks" ADD FOREIGN KEY ("created_by") REFERENCES "users" ("user_id") ON DELETE SET DEFAULT;
 
-ALTER TABLE "usersinproject" ADD FOREIGN KEY ("project_id") REFERENCES "projects" ("project_id");
+ALTER TABLE "usersinproject" ADD FOREIGN KEY ("project_id") REFERENCES "projects" ("project_id") ON DELETE CASCADE;
 
-ALTER TABLE "usersinproject" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
+ALTER TABLE "usersinproject" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id") ON DELETE CASCADE;
 
-ALTER TABLE "usersintask" ADD FOREIGN KEY ("task_id") REFERENCES "tasks" ("task_id");
+ALTER TABLE "usersintask" ADD FOREIGN KEY ("task_id") REFERENCES "tasks" ("task_id") ON DELETE CASCADE;
 
-ALTER TABLE "usersintask" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
+ALTER TABLE "usersintask" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id") ON DELETE CASCADE;
 
 ALTER TABLE "usersinproject" ADD CONSTRAINT "uq_usersinproject" UNIQUE("project_id", "user_id");
 
 ALTER TABLE "usersintask" ADD CONSTRAINT "uq_usersintask" UNIQUE("task_id", "user_id");
 
-ALTER TABLE "refresh_token" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");
+ALTER TABLE "refresh_token" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id") ON DELETE CASCADE;
 
 ALTER TABLE "refresh_token" ADD CONSTRAINT "uq_refresh_token" UNIQUE("user_id", "fingerprint");
