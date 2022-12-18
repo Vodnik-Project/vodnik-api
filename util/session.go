@@ -15,11 +15,11 @@ func GetSessionID(userAgent, acceptLang string) string {
 	return sessionID
 }
 
-// get username from access token payload parsed from jwt middleware
-func GetUsername(c echo.Context) string {
+// get field from access token payload parsed from jwt middleware
+func GetFieldFromPayload(c echo.Context, field string) string {
 	payload := reflect.ValueOf(c.Get("user")).Elem()
 	claims := payload.FieldByName("Claims").Elem()
-	username := claims.Elem().FieldByName("Username")
+	username := claims.Elem().FieldByName(field)
 
 	return username.String()
 }
