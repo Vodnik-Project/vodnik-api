@@ -6,6 +6,7 @@ import (
 )
 
 type AccessTokenPayload struct {
+	UserID    string
 	Username  string
 	IssuedAt  int64
 	ExpiresAt int64
@@ -16,8 +17,9 @@ type RefreshTokenPayload struct {
 	ExpiresAt int64
 }
 
-func NewAccessTokenPayload(username string, duration time.Duration) AccessTokenPayload {
+func NewAccessTokenPayload(userid string, username string, duration time.Duration) AccessTokenPayload {
 	p := AccessTokenPayload{
+		UserID:    userid,
 		Username:  username,
 		IssuedAt:  time.Now().Unix(),
 		ExpiresAt: time.Now().Add(duration).Unix(),

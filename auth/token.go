@@ -14,9 +14,8 @@ type Token struct {
 }
 
 type TokenMaker interface {
-	CreateAccessToken(username string) (string, error)
+	CreateAccessToken(userid string, username string) (string, error)
 	CreateRefreshToken() (string, error)
-	TokenParser(Accesstoken string) (AccessTokenPayload, error)
 }
 
 func NewTokenMaker(token Token) Token {
@@ -28,8 +27,8 @@ func NewTokenMaker(token Token) Token {
 	return t
 }
 
-func (t Token) CreateAccessToken(username string) (string, error) {
-	p := NewAccessTokenPayload(username, t.AccessTokenDuration)
+func (t Token) CreateAccessToken(userid string, username string) (string, error) {
+	p := NewAccessTokenPayload(userid, username, t.AccessTokenDuration)
 	if err := p.Valid(); err != nil {
 		return "", fmt.Errorf("payload is not valid: %v", err)
 	}
@@ -52,15 +51,4 @@ func (t Token) CreateRefreshToken() (string, error) {
 		return "", fmt.Errorf("can't create token: %v", err)
 	}
 	return tk, nil
-}
-
-func (token Token) TokenParser(Accesstoken string) (AccessTokenPayload, error) {
-	var payload AccessTokenPayload
-	_, err := jwt.ParseWithClaims(Accesstoken, &payload, func(t *jwt.Token) (interface{}, error) {
-		return []byte(token.Secret), nil
-	})
-	if err != nil {
-		return AccessTokenPayload{}, fmt.Errorf("can't parse token claims: %v", err)
-	}
-	return payload, nil
 }
