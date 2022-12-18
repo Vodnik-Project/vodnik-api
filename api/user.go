@@ -100,5 +100,11 @@ func (s *Server) UpdateUser(c echo.Context) error {
 }
 
 func (s *Server) DeleteUser(c echo.Context) error {
-	return nil
+	ctx := c.Request().Context()
+	username := util.GetUsername(c)
+	err := s.store.DeleteUser(ctx, username)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, "user deleted successfully")
 }
