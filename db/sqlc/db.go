@@ -84,14 +84,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserByIdStmt, err = db.PrepareContext(ctx, getUserById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserById: %w", err)
 	}
-	if q.getUserByUsernameStmt, err = db.PrepareContext(ctx, getUserByUsername); err != nil {
-		return nil, fmt.Errorf("error preparing query GetUserByUsername: %w", err)
-	}
 	if q.getUsersByProjectIDStmt, err = db.PrepareContext(ctx, getUsersByProjectID); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUsersByProjectID: %w", err)
 	}
 	if q.getUsersByTaskIDStmt, err = db.PrepareContext(ctx, getUsersByTaskID); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUsersByTaskID: %w", err)
+	}
+	if q.isUserInProjectStmt, err = db.PrepareContext(ctx, isUserInProject); err != nil {
+		return nil, fmt.Errorf("error preparing query IsUserInProject: %w", err)
 	}
 	if q.setSessionStmt, err = db.PrepareContext(ctx, setSession); err != nil {
 		return nil, fmt.Errorf("error preparing query SetSession: %w", err)
@@ -210,11 +210,6 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUserByIdStmt: %w", cerr)
 		}
 	}
-	if q.getUserByUsernameStmt != nil {
-		if cerr := q.getUserByUsernameStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getUserByUsernameStmt: %w", cerr)
-		}
-	}
 	if q.getUsersByProjectIDStmt != nil {
 		if cerr := q.getUsersByProjectIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUsersByProjectIDStmt: %w", cerr)
@@ -223,6 +218,11 @@ func (q *Queries) Close() error {
 	if q.getUsersByTaskIDStmt != nil {
 		if cerr := q.getUsersByTaskIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUsersByTaskIDStmt: %w", cerr)
+		}
+	}
+	if q.isUserInProjectStmt != nil {
+		if cerr := q.isUserInProjectStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing isUserInProjectStmt: %w", cerr)
 		}
 	}
 	if q.setSessionStmt != nil {
@@ -304,9 +304,9 @@ type Queries struct {
 	getTasksByUserIDStmt      *sql.Stmt
 	getUserByEmailStmt        *sql.Stmt
 	getUserByIdStmt           *sql.Stmt
-	getUserByUsernameStmt     *sql.Stmt
 	getUsersByProjectIDStmt   *sql.Stmt
 	getUsersByTaskIDStmt      *sql.Stmt
+	isUserInProjectStmt       *sql.Stmt
 	setSessionStmt            *sql.Stmt
 	updateProjectStmt         *sql.Stmt
 	updateTaskStmt            *sql.Stmt
@@ -337,9 +337,9 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getTasksByUserIDStmt:      q.getTasksByUserIDStmt,
 		getUserByEmailStmt:        q.getUserByEmailStmt,
 		getUserByIdStmt:           q.getUserByIdStmt,
-		getUserByUsernameStmt:     q.getUserByUsernameStmt,
 		getUsersByProjectIDStmt:   q.getUsersByProjectIDStmt,
 		getUsersByTaskIDStmt:      q.getUsersByTaskIDStmt,
+		isUserInProjectStmt:       q.isUserInProjectStmt,
 		setSessionStmt:            q.setSessionStmt,
 		updateProjectStmt:         q.updateProjectStmt,
 		updateTaskStmt:            q.updateTaskStmt,

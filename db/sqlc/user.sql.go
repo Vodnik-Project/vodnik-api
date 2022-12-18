@@ -50,11 +50,11 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 
 const deleteUser = `-- name: DeleteUser :exec
 DELETE FROM users
-WHERE username = $1
+WHERE user_id = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, username string) error {
-	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser, username)
+func (q *Queries) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser, userID)
 	return err
 }
 
@@ -98,51 +98,31 @@ func (q *Queries) GetUserById(ctx context.Context, userID uuid.UUID) (User, erro
 	return i, err
 }
 
-const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT user_id, username, email, pass_hash, joined_at, bio, profile_photo FROM users
-WHERE username = $1
-`
-
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
-	row := q.queryRow(ctx, q.getUserByUsernameStmt, getUserByUsername, username)
-	var i User
-	err := row.Scan(
-		&i.UserID,
-		&i.Username,
-		&i.Email,
-		&i.PassHash,
-		&i.JoinedAt,
-		&i.Bio,
-		&i.ProfilePhoto,
-	)
-	return i, err
-}
-
 const updateUser = `-- name: UpdateUser :one
 UPDATE users SET
   username = COALESCE(NULLIF($1, ''), username),
   email = COALESCE(NULLIF($2, ''), email),
   pass_hash = COALESCE(NULLIF($3, ''), pass_hash),
   bio = COALESCE(NULLIF($4, ''), bio)
-WHERE username = $5
+WHERE user_id = $5
 RETURNING user_id, username, email, pass_hash, joined_at, bio, profile_photo
 `
 
 type UpdateUserParams struct {
-	NewUsername interface{} `json:"new_username"`
-	Email       interface{} `json:"email"`
-	PassHash    interface{} `json:"pass_hash"`
-	Bio         interface{} `json:"bio"`
-	Username    string      `json:"username"`
+	Username interface{} `json:"username"`
+	Email    interface{} `json:"email"`
+	PassHash interface{} `json:"pass_hash"`
+	Bio      interface{} `json:"bio"`
+	UserID   uuid.UUID   `json:"user_id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	row := q.queryRow(ctx, q.updateUserStmt, updateUser,
-		arg.NewUsername,
+		arg.Username,
 		arg.Email,
 		arg.PassHash,
 		arg.Bio,
-		arg.Username,
+		arg.UserID,
 	)
 	var i User
 	err := row.Scan(

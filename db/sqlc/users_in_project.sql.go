@@ -118,3 +118,25 @@ func (q *Queries) GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) 
 	}
 	return items, nil
 }
+
+const isUserInProject = `-- name: IsUserInProject :one
+SELECT project_id, user_id, added_at, admin FROM usersinproject
+WHERE user_id = $1 AND project_id = $2
+`
+
+type IsUserInProjectParams struct {
+	UserID    uuid.UUID `json:"user_id"`
+	ProjectID uuid.UUID `json:"project_id"`
+}
+
+func (q *Queries) IsUserInProject(ctx context.Context, arg IsUserInProjectParams) (Usersinproject, error) {
+	row := q.queryRow(ctx, q.isUserInProjectStmt, isUserInProject, arg.UserID, arg.ProjectID)
+	var i Usersinproject
+	err := row.Scan(
+		&i.ProjectID,
+		&i.UserID,
+		&i.AddedAt,
+		&i.Admin,
+	)
+	return i, err
+}

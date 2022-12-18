@@ -58,25 +58,12 @@ func TestGetUserByEmail(t *testing.T) {
 	require.Equal(t, randomuser.Bio, user.Bio)
 }
 
-func TestGetUserByUsername(t *testing.T) {
-	randomuser := createrandomuser(t)
-
-	user, err := testQueries.GetUserByUsername(context.Background(), randomuser.Username)
-	require.NoError(t, err)
-	require.NotEmpty(t, user)
-
-	require.Equal(t, randomuser.Username, user.Username)
-	require.Equal(t, randomuser.Email, user.Email)
-	require.Equal(t, randomuser.PassHash, user.PassHash)
-	require.Equal(t, randomuser.Bio, user.Bio)
-}
-
 func TestUpdateUser(t *testing.T) {
 	randomuser := createrandomuser(t)
 	newUsername := util.RandomString(5)
 	user, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
-		NewUsername: newUsername,
-		Username:    randomuser.Username,
+		UserID:   randomuser.UserID,
+		Username: randomuser.Username,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, user)
@@ -92,7 +79,7 @@ func TestUpdateUser(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 	randomuser := createrandomuser(t)
 
-	err := testQueries.DeleteUser(context.Background(), randomuser.Username)
+	err := testQueries.DeleteUser(context.Background(), randomuser.UserID)
 	require.NoError(t, err)
 
 	user, err := testQueries.GetUserById(context.Background(), randomuser.UserID)

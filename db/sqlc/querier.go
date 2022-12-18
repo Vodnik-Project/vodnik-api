@@ -20,7 +20,7 @@ type Querier interface {
 	DeleteProject(ctx context.Context, projectID uuid.UUID) error
 	DeleteSession(ctx context.Context, token string) error
 	DeleteTask(ctx context.Context, taskID uuid.UUID) error
-	DeleteUser(ctx context.Context, username string) error
+	DeleteUser(ctx context.Context, userID uuid.UUID) error
 	DeleteUserFromProject(ctx context.Context, arg DeleteUserFromProjectParams) error
 	DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTaskParams) error
 	GetDeviceSession(ctx context.Context, arg GetDeviceSessionParams) (RefreshToken, error)
@@ -32,9 +32,9 @@ type Querier interface {
 	GetTasksByUserID(ctx context.Context, userID uuid.UUID) ([]Usersintask, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID uuid.UUID) (User, error)
-	GetUserByUsername(ctx context.Context, username string) (User, error)
 	GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) ([]Usersinproject, error)
 	GetUsersByTaskID(ctx context.Context, taskID uuid.UUID) ([]Usersintask, error)
+	IsUserInProject(ctx context.Context, arg IsUserInProjectParams) (Usersinproject, error)
 	SetSession(ctx context.Context, arg SetSessionParams) error
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
 	// TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
