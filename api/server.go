@@ -8,16 +8,16 @@ import (
 )
 
 type Server struct {
-	queries     sqlc.Queries
+	store       sqlc.Store
 	tokenMaker  auth.TokenMaker
 	tokenSecret string
 	e           *echo.Echo
 }
 
-func NewServer(queries *sqlc.Queries, tokenSecret string, tokenMaker auth.TokenMaker) *Server {
+func NewServer(store sqlc.Store, tokenSecret string, tokenMaker auth.TokenMaker) *Server {
 	e := echo.New()
 	server := &Server{
-		queries:     *queries,
+		store:       store,
 		tokenSecret: tokenSecret,
 		tokenMaker:  tokenMaker,
 	}
@@ -32,13 +32,21 @@ func NewServer(queries *sqlc.Queries, tokenSecret string, tokenMaker auth.TokenM
 		Skipper:    skipper,
 	}))
 	user := e.Group("/user")
-	// user.Use(server.userAuthorization)
 	user.GET("", server.GetUserData)
 	user.PUT("", server.UpdateUser)
 	user.DELETE("", server.DeleteUser)
 
+	project := e.Group("/project")
+	project.POST("", server.CreateProject)
+	project.GET("/:projectid", server.GetProjectData)
+	project.PUT("/:projectid", server.UpdateProject)
+	project.DELETE("/:projectid", server.DeleteProject)
+	project.GET("/user/:projectid/users", server.GetUsersInProject)
+	project.POST("/user/:projectid/:username", server.AddUserToProject)
+	project.DELETE("/user/:projectid/:username", server.DeleteUserFromProject)
+
 	// task := e.Group("/task")
-	// task.POST("/", server.CreateTask)
+	// task.POST("", server.CreateTask)
 	// task.GET("/:taskid", server.GetTaskData)
 	// task.GET("/byproject/:projectid", server.GetTasksByProjectID)
 	// task.PUT("/:taskid", server.UpdateTask)
@@ -46,15 +54,6 @@ func NewServer(queries *sqlc.Queries, tokenSecret string, tokenMaker auth.TokenM
 	// task.GET("/user/:taskid/users", server.GetUsersInTask)
 	// task.POST("/user/:taskid/:username", server.AddUserToTask)
 	// task.DELETE("/user/:taskid/:username", server.DeleteUserFromTask)
-
-	// project := e.Group("/project")
-	// project.POST("/", server.CreateProject)
-	// project.GET("/:projectid", server.GetProjectData)
-	// project.PUT("/:projectid", server.UpdateProject)
-	// project.DELETE("/:projectid", server.DeleteProject)
-	// project.GET("/user/:projectid/users", server.GetUsersInProject)
-	// project.POST("/user/:projectid/:username", server.AddUserToProject)
-	// project.DELETE("/user/:projectid/:username", server.DeleteUserFromProject)
 
 	server.e = e
 	return server

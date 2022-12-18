@@ -33,7 +33,7 @@ func (s Server) Login(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, err.Error())
 	}
-	user, err := s.queries.GetUserByEmail(c.Request().Context(), reqData.Email)
+	user, err := s.store.GetUserByEmail(c.Request().Context(), reqData.Email)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, "user not found")
 	}
@@ -51,14 +51,14 @@ func (s Server) Login(c echo.Context) error {
 		msg := fmt.Errorf("can't create refresh token: %v", err)
 		return c.JSON(http.StatusInternalServerError, msg.Error())
 	}
-	oldSession, err := s.queries.GetDeviceSession(c.Request().Context(), sqlc.GetDeviceSessionParams{
+	oldSession, err := s.store.GetDeviceSession(c.Request().Context(), sqlc.GetDeviceSessionParams{
 		UserID:      user.UserID,
 		Fingerprint: sessionID,
 	})
 	if err != sql.ErrNoRows {
-		s.queries.DeleteSession(c.Request().Context(), oldSession.Token)
+		s.store.DeleteSession(c.Request().Context(), oldSession.Token)
 	}
-	err = s.queries.SetSession(c.Request().Context(), sqlc.SetSessionParams{
+	err = s.store.SetSession(c.Request().Context(), sqlc.SetSessionParams{
 		Token:       refreshToken,
 		UserID:      user.UserID,
 		Fingerprint: sessionID,
@@ -93,11 +93,11 @@ func (s Server) Refresh_token(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	session, err := s.queries.GetSessionByToken(c.Request().Context(), refreshToken.RefreshToken)
+	session, err := s.store.GetSessionByToken(c.Request().Context(), refreshToken.RefreshToken)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "not a valid refresh token")
 	}
-	user, err := s.queries.GetUserByUsername(c.Request().Context(), refreshToken.Username)
+	user, err := s.store.GetUserByUsername(c.Request().Context(), refreshToken.Username)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

@@ -32,7 +32,7 @@ func (s *Server) CreateUser(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"err": err.Error()})
 	}
 	passHash := util.PassHash(user.Password)
-	createdUser, err := s.queries.CreateUser(c.Request().Context(), sqlc.CreateUserParams{
+	createdUser, err := s.store.CreateUser(c.Request().Context(), sqlc.CreateUserParams{
 		Username: user.Username,
 		Email:    user.Email,
 		PassHash: passHash,
@@ -55,7 +55,7 @@ type userDataRespond struct {
 func (s *Server) GetUserData(c echo.Context) error {
 	ctx := c.Request().Context()
 	username := util.GetUsername(c)
-	userData, err := s.queries.GetUserByUsername(ctx, username)
+	userData, err := s.store.GetUserByUsername(ctx, username)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "can't get data from db")
 	}
@@ -85,7 +85,7 @@ func (s *Server) UpdateUser(c echo.Context) error {
 	if updateData.Password != "" {
 		updateData.Password = util.PassHash(updateData.Password)
 	}
-	_, err = s.queries.UpdateUser(ctx, sqlc.UpdateUserParams{
+	_, err = s.store.UpdateUser(ctx, sqlc.UpdateUserParams{
 		Username:    username,
 		NewUsername: updateData.NewUsername,
 		Email:       updateData.Email,

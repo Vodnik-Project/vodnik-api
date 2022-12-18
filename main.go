@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("can't connect to db: %v", err)
 	}
-	q := sqlc.New(db)
+	q := sqlc.NewStore(db)
 	token := auth.NewTokenMaker(auth.Token{
 		Secret:               []byte(config.JWT_SECRET_KEY),
 		AccessTokenDuration:  config.ACCESS_TOKEN_DURATION,
