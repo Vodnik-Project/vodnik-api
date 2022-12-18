@@ -8,6 +8,7 @@ import (
 
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	"github.com/Vodnik-Project/vodnik-api/util"
+	"github.com/gofrs/uuid"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/labstack/echo/v4"
 )
@@ -20,6 +21,7 @@ type CreateUserReqParams struct {
 }
 
 func (s *Server) CreateUser(c echo.Context) error {
+	ctx := c.Request().Context()
 	var user CreateUserReqParams
 	err := c.Bind(&user)
 	if err != nil {
@@ -32,7 +34,7 @@ func (s *Server) CreateUser(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"err": err.Error()})
 	}
 	passHash := util.PassHash(user.Password)
-	createdUser, err := s.store.CreateUser(c.Request().Context(), sqlc.CreateUserParams{
+	createdUser, err := s.store.CreateUser(ctx, sqlc.CreateUserParams{
 		Username: user.Username,
 		Email:    user.Email,
 		PassHash: passHash,
@@ -54,8 +56,12 @@ type userDataRespond struct {
 
 func (s *Server) GetUserData(c echo.Context) error {
 	ctx := c.Request().Context()
-	username := util.GetUsername(c)
-	userData, err := s.store.GetUserByUsername(ctx, username)
+	userid := util.GetFieldFromPayload(c, "UserID")
+	userUUID, err := uuid.FromString(userid)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "can't parse uuid")
+	}
+	userData, err := s.store.GetUserById(ctx, userUUID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "can't get data from db")
 	}
@@ -68,17 +74,21 @@ func (s *Server) GetUserData(c echo.Context) error {
 }
 
 type updateUserRequest struct {
-	NewUsername string `json:"username"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	Bio         string `json:"bio"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Bio      string `json:"bio"`
 }
 
 func (s *Server) UpdateUser(c echo.Context) error {
 	ctx := c.Request().Context()
-	username := util.GetUsername(c)
+	userid := util.GetFieldFromPayload(c, "UserID")
+	userUUID, err := uuid.FromString(userid)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "can't parse uuid")
+	}
 	var updateData updateUserRequest
-	err := c.Bind(&updateData)
+	err = c.Bind(&updateData)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "can't bind input data")
 	}
@@ -86,11 +96,11 @@ func (s *Server) UpdateUser(c echo.Context) error {
 		updateData.Password = util.PassHash(updateData.Password)
 	}
 	_, err = s.store.UpdateUser(ctx, sqlc.UpdateUserParams{
-		Username:    username,
-		NewUsername: updateData.NewUsername,
-		Email:       updateData.Email,
-		PassHash:    updateData.Password,
-		Bio:         updateData.Bio,
+		Username: updateData.Username,
+		Email:    updateData.Email,
+		PassHash: updateData.Password,
+		Bio:      updateData.Bio,
+		UserID:   userUUID,
 	})
 	if err != nil {
 		msg := fmt.Errorf("can't update data to db: %v", err)
@@ -101,8 +111,12 @@ func (s *Server) UpdateUser(c echo.Context) error {
 
 func (s *Server) DeleteUser(c echo.Context) error {
 	ctx := c.Request().Context()
-	username := util.GetUsername(c)
-	err := s.store.DeleteUser(ctx, username)
+	userid := util.GetFieldFromPayload(c, "UserID")
+	userUUID, err := uuid.FromString(userid)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "can't parse uuid")
+	}
+	err = s.store.DeleteUser(ctx, userUUID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}

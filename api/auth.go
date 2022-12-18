@@ -8,6 +8,7 @@ import (
 	"github.com/Vodnik-Project/vodnik-api/auth"
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	"github.com/Vodnik-Project/vodnik-api/util"
+	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
@@ -23,6 +24,7 @@ type loginRespond struct {
 }
 
 func (s Server) Login(c echo.Context) error {
+	ctx := c.Request().Context()
 	var reqData loginRequest
 	err := c.Bind(&reqData)
 	if err != nil {
@@ -33,14 +35,14 @@ func (s Server) Login(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, err.Error())
 	}
-	user, err := s.store.GetUserByEmail(c.Request().Context(), reqData.Email)
+	user, err := s.store.GetUserByEmail(ctx, reqData.Email)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, "user not found")
 	}
 	if err = util.CheckPassword(reqData.Password, user.PassHash); err != nil {
 		return c.JSON(http.StatusUnauthorized, err.Error())
 	}
-	accessToken, err := s.tokenMaker.CreateAccessToken(user.Username)
+	accessToken, err := s.tokenMaker.CreateAccessToken(user.UserID.String(), user.Username)
 	if err != nil {
 		msg := fmt.Errorf("can't create access token: %v", err)
 		return c.JSON(http.StatusInternalServerError, msg.Error())
@@ -51,14 +53,14 @@ func (s Server) Login(c echo.Context) error {
 		msg := fmt.Errorf("can't create refresh token: %v", err)
 		return c.JSON(http.StatusInternalServerError, msg.Error())
 	}
-	oldSession, err := s.store.GetDeviceSession(c.Request().Context(), sqlc.GetDeviceSessionParams{
+	oldSession, err := s.store.GetDeviceSession(ctx, sqlc.GetDeviceSessionParams{
 		UserID:      user.UserID,
 		Fingerprint: sessionID,
 	})
 	if err != sql.ErrNoRows {
-		s.store.DeleteSession(c.Request().Context(), oldSession.Token)
+		s.store.DeleteSession(ctx, oldSession.Token)
 	}
-	err = s.store.SetSession(c.Request().Context(), sqlc.SetSessionParams{
+	err = s.store.SetSession(ctx, sqlc.SetSessionParams{
 		Token:       refreshToken,
 		UserID:      user.UserID,
 		Fingerprint: sessionID,
@@ -76,10 +78,11 @@ func (s Server) Login(c echo.Context) error {
 
 type refreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token"`
-	Username     string `'json:"username"`
+	UserID       string `'json:"userid"`
 }
 
 func (s Server) Refresh_token(c echo.Context) error {
+	ctx := c.Request().Context()
 	var refreshToken refreshTokenRequest
 	err := c.Bind(&refreshToken)
 	if err != nil {
@@ -93,18 +96,22 @@ func (s Server) Refresh_token(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	session, err := s.store.GetSessionByToken(c.Request().Context(), refreshToken.RefreshToken)
+	session, err := s.store.GetSessionByToken(ctx, refreshToken.RefreshToken)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "not a valid refresh token")
 	}
-	user, err := s.store.GetUserByUsername(c.Request().Context(), refreshToken.Username)
+	userUUID, err := uuid.FromString(refreshToken.UserID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "can't parse uuid")
+	}
+	user, err := s.store.GetUserById(ctx, userUUID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	if user.UserID != session.UserID {
 		return c.JSON(http.StatusUnauthorized, "not valid user")
 	}
-	if user.Username != refreshToken.Username {
+	if user.UserID != userUUID {
 		return c.JSON(http.StatusUnauthorized, "not valid user")
 	}
 	sessionID := util.GetSessionID(c.Request().UserAgent(), c.Request().Header.Get("Accept-Language"))
@@ -113,7 +120,7 @@ func (s Server) Refresh_token(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, "not valid user")
 	}
 
-	accessToken, err := s.tokenMaker.CreateAccessToken(refreshToken.Username)
+	accessToken, err := s.tokenMaker.CreateAccessToken(user.UserID.String(), user.Username)
 	if err != nil {
 		msg := fmt.Errorf("can't create access token: %v", err)
 		return c.JSON(http.StatusInternalServerError, msg.Error())
