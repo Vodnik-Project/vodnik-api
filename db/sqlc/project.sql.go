@@ -70,8 +70,8 @@ func (q *Queries) GetProjectData(ctx context.Context, projectID uuid.UUID) (Proj
 
 const updateProject = `-- name: UpdateProject :one
 UPDATE projects SET
-  title = COALESCE(NULLIF($1, 'NULL'), title),
-  info = COALESCE(NULLIF($2, 'NULL'), info)
+  title = COALESCE(NULLIF($1, ''), title),
+  info = COALESCE(NULLIF($2, ''), info)
 WHERE project_id = $3
 RETURNING project_id, title, info, owner_id, created_at
 `

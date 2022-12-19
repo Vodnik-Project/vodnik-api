@@ -20,3 +20,7 @@ WHERE user_id = $1 AND project_id = $2;
 -- name: DeleteUserFromProject :exec
 DELETE FROM usersinproject
 WHERE user_id = $1 AND project_id = $2;
+
+-- name: IsAdmin :one
+SELECT * FROM usersinproject
+WHERE user_id = $1 AND project_id = $2;

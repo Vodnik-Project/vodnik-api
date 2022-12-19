@@ -119,6 +119,28 @@ func (q *Queries) GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) 
 	return items, nil
 }
 
+const isAdmin = `-- name: IsAdmin :one
+SELECT project_id, user_id, added_at, admin FROM usersinproject
+WHERE user_id = $1 AND project_id = $2
+`
+
+type IsAdminParams struct {
+	UserID    uuid.UUID `json:"user_id"`
+	ProjectID uuid.UUID `json:"project_id"`
+}
+
+func (q *Queries) IsAdmin(ctx context.Context, arg IsAdminParams) (Usersinproject, error) {
+	row := q.queryRow(ctx, q.isAdminStmt, isAdmin, arg.UserID, arg.ProjectID)
+	var i Usersinproject
+	err := row.Scan(
+		&i.ProjectID,
+		&i.UserID,
+		&i.AddedAt,
+		&i.Admin,
+	)
+	return i, err
+}
+
 const isUserInProject = `-- name: IsUserInProject :one
 SELECT project_id, user_id, added_at, admin FROM usersinproject
 WHERE user_id = $1 AND project_id = $2

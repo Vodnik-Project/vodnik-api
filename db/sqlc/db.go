@@ -90,6 +90,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUsersByTaskIDStmt, err = db.PrepareContext(ctx, getUsersByTaskID); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUsersByTaskID: %w", err)
 	}
+	if q.isAdminStmt, err = db.PrepareContext(ctx, isAdmin); err != nil {
+		return nil, fmt.Errorf("error preparing query IsAdmin: %w", err)
+	}
 	if q.isUserInProjectStmt, err = db.PrepareContext(ctx, isUserInProject); err != nil {
 		return nil, fmt.Errorf("error preparing query IsUserInProject: %w", err)
 	}
@@ -220,6 +223,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUsersByTaskIDStmt: %w", cerr)
 		}
 	}
+	if q.isAdminStmt != nil {
+		if cerr := q.isAdminStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing isAdminStmt: %w", cerr)
+		}
+	}
 	if q.isUserInProjectStmt != nil {
 		if cerr := q.isUserInProjectStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing isUserInProjectStmt: %w", cerr)
@@ -306,6 +314,7 @@ type Queries struct {
 	getUserByIdStmt           *sql.Stmt
 	getUsersByProjectIDStmt   *sql.Stmt
 	getUsersByTaskIDStmt      *sql.Stmt
+	isAdminStmt               *sql.Stmt
 	isUserInProjectStmt       *sql.Stmt
 	setSessionStmt            *sql.Stmt
 	updateProjectStmt         *sql.Stmt
@@ -339,6 +348,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getUserByIdStmt:           q.getUserByIdStmt,
 		getUsersByProjectIDStmt:   q.getUsersByProjectIDStmt,
 		getUsersByTaskIDStmt:      q.getUsersByTaskIDStmt,
+		isAdminStmt:               q.isAdminStmt,
 		isUserInProjectStmt:       q.isUserInProjectStmt,
 		setSessionStmt:            q.setSessionStmt,
 		updateProjectStmt:         q.updateProjectStmt,

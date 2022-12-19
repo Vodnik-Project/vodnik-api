@@ -34,6 +34,7 @@ type Querier interface {
 	GetUserById(ctx context.Context, userID uuid.UUID) (User, error)
 	GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) ([]Usersinproject, error)
 	GetUsersByTaskID(ctx context.Context, taskID uuid.UUID) ([]Usersintask, error)
+	IsAdmin(ctx context.Context, arg IsAdminParams) (Usersinproject, error)
 	IsUserInProject(ctx context.Context, arg IsUserInProjectParams) (Usersinproject, error)
 	SetSession(ctx context.Context, arg SetSessionParams) error
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
