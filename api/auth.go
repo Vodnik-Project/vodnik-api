@@ -11,6 +11,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type loginRequest struct {
@@ -39,7 +40,7 @@ func (s Server) Login(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, "user not found")
 	}
-	if err = util.CheckPassword(reqData.Password, user.PassHash); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.PassHash), []byte(reqData.Password)); err != nil {
 		return c.JSON(http.StatusUnauthorized, err.Error())
 	}
 	accessToken, err := s.tokenMaker.CreateAccessToken(user.UserID.String(), user.Username)

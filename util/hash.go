@@ -1,12 +1,15 @@
 package util
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
+	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
-func PassHash(password string) string {
-	passHash := sha256.Sum256([]byte(password))
-	passHashHex := hex.EncodeToString(passHash[:])
-	return passHashHex
+func PassHash(password string) (string, error) {
+	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("can't generate password: %v", err)
+	}
+	return string(passHash), nil
 }

@@ -33,7 +33,10 @@ func (s *Server) CreateUser(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"err": err.Error()})
 	}
-	passHash := util.PassHash(user.Password)
+	passHash, err := util.PassHash(user.Password)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "can't generate password hash")
+	}
 	createdUser, err := s.store.CreateUser(ctx, sqlc.CreateUserParams{
 		Username: user.Username,
 		Email:    user.Email,
@@ -93,7 +96,10 @@ func (s *Server) UpdateUser(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, "can't bind input data")
 	}
 	if updateData.Password != "" {
-		updateData.Password = util.PassHash(updateData.Password)
+		updateData.Password, err = util.PassHash(updateData.Password)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, "can't generate password hash")
+		}
 	}
 	_, err = s.store.UpdateUser(ctx, sqlc.UpdateUserParams{
 		Username: updateData.Username,
