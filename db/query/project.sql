@@ -12,8 +12,8 @@ WHERE project_id = $1;
 
 -- name: UpdateProject :one
 UPDATE projects SET
-  title = COALESCE(NULLIF(@title, 'NULL'), title),
-  info = COALESCE(NULLIF(@info, 'NULL'), info)
+  title = COALESCE(NULLIF(@title, ''), title),
+  info = COALESCE(NULLIF(@info, ''), info)
 WHERE project_id = @project_id
 RETURNING *;
 
