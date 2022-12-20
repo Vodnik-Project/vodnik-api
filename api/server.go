@@ -32,7 +32,7 @@ func NewServer(store sqlc.Store, tokenSecret string, tokenMaker auth.TokenMaker)
 		Skipper:    skipper,
 	}))
 	user := e.Group("/user")
-	user.GET("", server.GetUserData)
+	user.GET("/:userid", server.GetUserData)
 	user.PUT("", server.UpdateUser)
 	user.DELETE("", server.DeleteUser)
 
