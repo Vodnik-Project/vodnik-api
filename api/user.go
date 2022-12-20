@@ -66,13 +66,13 @@ func (s *Server) CreateUser(c echo.Context) error {
 			switch pgerr.ConstraintName {
 			case "users_email_key":
 				log.Logger.Err(err).Str("traceid", traceid).Msg("")
-				return c.JSON(http.StatusForbidden, echo.Map{
+				return c.JSON(http.StatusConflict, echo.Map{
 					"message": "user with same email already exist",
 					"traceid": traceid,
 				})
 			case "users_username_key":
 				log.Logger.Err(err).Str("traceid", traceid).Msg("")
-				return c.JSON(http.StatusForbidden, echo.Map{
+				return c.JSON(http.StatusConflict, echo.Map{
 					"message": "user with same username already exist",
 					"traceid": traceid,
 				})
@@ -84,14 +84,22 @@ func (s *Server) CreateUser(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	log.Logger.Info().Msgf("user created: %+v", createdUser)
+	responseData := userDataResponse{
+		UserID:   createdUser.UserID.String(),
+		Username: createdUser.Username,
+		Email:    createdUser.Email,
+		Bio:      createdUser.Bio.String,
+		JoinedAt: createdUser.JoinedAt.Format(time.RFC3339),
+	}
+	log.Logger.Info().Msgf("user created: %+v", responseData)
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "user created successfully",
-		"user":    createdUser,
+		"user":    responseData,
 	})
 }
 
-type userDataRespond struct {
+type userDataResponse struct {
+	UserID   string `json:"userid"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Bio      string `json:"bio"`
@@ -126,11 +134,16 @@ func (s *Server) GetUserData(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	return c.JSON(http.StatusOK, userDataRespond{
+	responseData := userDataResponse{
+		UserID:   userData.UserID.String(),
 		Username: userData.Username,
 		Email:    userData.Email,
 		Bio:      userData.Bio.String,
 		JoinedAt: userData.JoinedAt.Format(time.RFC3339),
+	}
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "user found",
+		"user":    responseData,
 	})
 }
 
@@ -148,8 +161,8 @@ func (s *Server) UpdateUser(c echo.Context) error {
 	if err != nil {
 		traceid := util.RandomString(8)
 		log.Logger.Err(err).Str("traceid", traceid).Msg("")
-		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": "invalid userid",
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
 			"traceid": traceid,
 		})
 	}
@@ -183,7 +196,6 @@ func (s *Server) UpdateUser(c echo.Context) error {
 		Bio:      updateData.Bio,
 		UserID:   userUUID,
 	})
-
 	if err != nil {
 		pgerr := err.(pgx.PgError)
 		traceid := util.RandomString(8)
@@ -191,13 +203,13 @@ func (s *Server) UpdateUser(c echo.Context) error {
 			switch pgerr.ConstraintName {
 			case "users_email_key":
 				log.Logger.Err(err).Str("traceid", traceid).Msg("")
-				return c.JSON(http.StatusForbidden, echo.Map{
+				return c.JSON(http.StatusConflict, echo.Map{
 					"message": "user with same email already exist",
 					"traceid": traceid,
 				})
 			case "users_username_key":
 				log.Logger.Err(err).Str("traceid", traceid).Msg("")
-				return c.JSON(http.StatusForbidden, echo.Map{
+				return c.JSON(http.StatusConflict, echo.Map{
 					"message": "user with same username already exist",
 					"traceid": traceid,
 				})
@@ -209,10 +221,17 @@ func (s *Server) UpdateUser(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	log.Logger.Info().Msgf("user updated successfully: %+v", updatedUser)
+	responseData := userDataResponse{
+		UserID:   updatedUser.UserID.String(),
+		Username: updatedUser.Username,
+		Email:    updatedUser.Email,
+		Bio:      updatedUser.Bio.String,
+		JoinedAt: updatedUser.JoinedAt.Format(time.RFC3339),
+	}
+	log.Logger.Info().Msgf("user updated successfully: %+v", responseData)
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "user updated successfully",
-		"user":    updatedUser,
+		"user":    responseData,
 	})
 }
 
@@ -223,8 +242,8 @@ func (s *Server) DeleteUser(c echo.Context) error {
 	if err != nil {
 		traceid := util.RandomString(8)
 		log.Logger.Err(err).Str("traceid", traceid).Msg("")
-		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": "invalid userid",
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
 			"traceid": traceid,
 		})
 	}
