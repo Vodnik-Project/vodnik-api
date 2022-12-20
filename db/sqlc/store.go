@@ -8,7 +8,7 @@ import (
 
 type Store interface {
 	Querier
-	CreateProjectTx(ctx context.Context, args CreateProjectParams) error
+	CreateProjectTx(ctx context.Context, args CreateProjectParams) (interface{}, error)
 }
 
 type SQLStore struct {
@@ -23,20 +23,20 @@ func NewStore(db *sql.DB) Store {
 	}
 }
 
-func (s SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (s SQLStore) execTx(ctx context.Context, fn func(*Queries) (interface{}, error)) (interface{}, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	q := New(tx)
-	err = fn(q)
+	n, err := fn(q)
 	if err != nil {
 		rberr := tx.Rollback()
 		if rberr != nil {
-			return fmt.Errorf("rberr: %v, txerr: %v", rberr, err)
+			return nil, fmt.Errorf("rberr: %v, txerr: %v", rberr, err)
 		}
-		return err
+		return nil, err
 	}
-	return tx.Commit()
+	return n, tx.Commit()
 }
