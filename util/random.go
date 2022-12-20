@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const letters = "abcdefghijklmnopqrstuvwxyz"
+const letters = "abcdefghijklmnopqrstuvwxyz1234567890"
 
 func init() {
 	rand.Seed(time.Now().Unix())
@@ -26,5 +26,5 @@ func RandomString(n int) string {
 }
 
 func RandomEmail() string {
-	return RandomString(5) + "@" + RandomString(4) + ".com"
+	return RandomString(5) + "@email.com"
 }
