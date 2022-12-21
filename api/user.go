@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 	"time"
 
@@ -173,6 +174,14 @@ func (s *Server) UpdateUser(c echo.Context) error {
 		log.Logger.Err(err).Str("traceid", traceid).Msg("")
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
 			"message": "invalid input data",
+			"traceid": traceid,
+		})
+	}
+	if updateData == (updateUserRequest{}) {
+		traceid := util.RandomString(8)
+		log.Logger.Err(errors.New("input data is empty")).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "input data is empty",
 			"traceid": traceid,
 		})
 	}
