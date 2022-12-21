@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 	"time"
 
@@ -96,7 +97,6 @@ func (s Server) CreateProject(c echo.Context) error {
 func (s Server) GetProjectData(c echo.Context) error {
 	ctx := c.Request().Context()
 	projectID := c.Param("projectid")
-	userid := util.GetFieldFromPayload(c, "UserID")
 	projectUUID, err := uuid.FromString(projectID)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -117,6 +117,7 @@ func (s Server) GetProjectData(c echo.Context) error {
 			})
 		}
 	}
+	userid := util.GetFieldFromPayload(c, "UserID")
 	userUUID, err := uuid.FromString(userid)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -151,8 +152,94 @@ func (s Server) GetProjectData(c echo.Context) error {
 	})
 }
 
+type UpdateProjectRequest struct {
+	Title string `json:"title"`
+	Info  string `json:"info"`
+}
+
 func (s Server) UpdateProject(c echo.Context) error {
-	return nil
+	ctx := c.Request().Context()
+	projectID := c.Param("projectid")
+	projectUUID, err := uuid.FromString(projectID)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
+	}
+	project, err := s.store.GetProjectData(ctx, projectUUID)
+	if err != nil {
+		traceid := util.RandomString(8)
+		if err == sql.ErrNoRows {
+			log.Logger.Err(err).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusNotFound, echo.Map{
+				"message": "no project found",
+				"traceid": traceid,
+			})
+		}
+	}
+	userid := util.GetFieldFromPayload(c, "UserID")
+	userUUID, err := uuid.FromString(userid)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
+	}
+	if project.OwnerID.UUID != userUUID {
+		traceid := util.RandomString(8)
+		log.Logger.Err(errors.New("only owner of project can edit the project")).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusForbidden, echo.Map{
+			"message": "only owner of project can edit the project",
+			"traceid": traceid,
+		})
+	}
+	var updateProjectData UpdateProjectRequest
+	err = c.Bind(&updateProjectData)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("can't parse input data")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "invalid input",
+			"traceid": traceid,
+		})
+	}
+	if updateProjectData == (UpdateProjectRequest{}) {
+		traceid := util.RandomString(8)
+		log.Logger.Err(errors.New("input data is empty")).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "input data is empty",
+			"traceid": traceid,
+		})
+	}
+	updatedProject, err := s.store.UpdateProject(ctx, sqlc.UpdateProjectParams{
+		Title:     updateProjectData.Title,
+		Info:      updateProjectData.Info,
+		ProjectID: projectUUID,
+	})
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
+	}
+	responseData := projectDataResponse{
+		ProjectID: updatedProject.ProjectID.String(),
+		Title:     updatedProject.Title,
+		Info:      updatedProject.Info.String,
+		OwnerID:   updatedProject.OwnerID.UUID.String(),
+		CreatedAt: updatedProject.CreatedAt.Time.Format(time.RFC3339),
+	}
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "project updated successfully",
+		"project": responseData,
+	})
 }
 
 func (s Server) DeleteProject(c echo.Context) error {
