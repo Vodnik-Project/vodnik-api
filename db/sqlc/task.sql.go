@@ -139,21 +139,21 @@ UPDATE tasks SET
   title =     COALESCE(NULLIF($1, ''), title),
   info =      COALESCE(NULLIF($2, ''), info),
   tag =       COALESCE(NULLIF($3, ''), tag),
-  beggining = COALESCE($4, beggining),
-  deadline =  COALESCE($5, deadline),
+  beggining = COALESCE(NULLIF($4, timestamptz '0001-01-01 03:25:44+03:25:44'), beggining),
+  deadline =  COALESCE(NULLIF($5, timestamptz '0001-01-01 03:25:44+03:25:44'), deadline),
   color =     COALESCE(NULLIF($6, ''), color)
 WHERE task_id = $7
 RETURNING task_id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color
 `
 
 type UpdateTaskParams struct {
-	Title     interface{}  `json:"title"`
-	Info      interface{}  `json:"info"`
-	Tag       interface{}  `json:"tag"`
-	Beggining sql.NullTime `json:"beggining"`
-	Deadline  sql.NullTime `json:"deadline"`
-	Color     interface{}  `json:"color"`
-	ID        uuid.UUID    `json:"id"`
+	Title     interface{} `json:"title"`
+	Info      interface{} `json:"info"`
+	Tag       interface{} `json:"tag"`
+	Beggining interface{} `json:"beggining"`
+	Deadline  interface{} `json:"deadline"`
+	Color     interface{} `json:"color"`
+	TaskID    uuid.UUID   `json:"task_id"`
 }
 
 // TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
@@ -165,7 +165,7 @@ func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, e
 		arg.Beggining,
 		arg.Deadline,
 		arg.Color,
-		arg.ID,
+		arg.TaskID,
 	)
 	var i Task
 	err := row.Scan(

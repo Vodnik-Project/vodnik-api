@@ -20,13 +20,13 @@ WHERE task_id = $1;
 
 -- name: UpdateTask :one
 UPDATE tasks SET
-  title =     COALESCE(NULLIF(@title, 'NULL'), title),
-  info =      COALESCE(NULLIF(@info, 'NULL'), info),
-  tag =       COALESCE(NULLIF(@tag, 'NULL'), tag),
-  beggining = COALESCE(@beggining, beggining),
-  deadline =  COALESCE(@deadline, deadline),
-  color =     COALESCE(NULLIF(@color, 'NULL'), color)
-WHERE task_id = @id
+  title =     COALESCE(NULLIF(@title, ''), title),
+  info =      COALESCE(NULLIF(@info, ''), info),
+  tag =       COALESCE(NULLIF(@tag, ''), tag),
+  beggining = COALESCE(NULLIF(@beggining, timestamptz '0001-01-01 03:25:44+03:25:44'), beggining),
+  deadline =  COALESCE(NULLIF(@deadline, timestamptz '0001-01-01 03:25:44+03:25:44'), deadline),
+  color =     COALESCE(NULLIF(@color, ''), color)
+WHERE task_id = @task_id
 RETURNING *;
 
 -- name: DeleteTask :exec
