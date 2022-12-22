@@ -221,14 +221,6 @@ func (s Server) GetUsersInProject(c echo.Context) error {
 
 func (s Server) AddUserToProject(c echo.Context) error {
 	ctx := c.Request().Context()
-	if !c.Get("admin").(bool) {
-		traceid := util.RandomString(8)
-		log.Logger.Err(errors.New("not an admin")).Str("traceid", traceid).Msg("")
-		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": "only admins can modify users in project",
-			"traceid": traceid,
-		})
-	}
 	userToAdd := c.Param("userid")
 	userToAddUUID, err := uuid.FromString(userToAdd)
 	if err != nil {
@@ -258,14 +250,6 @@ func (s Server) AddUserToProject(c echo.Context) error {
 
 func (s Server) DeleteUserFromProject(c echo.Context) error {
 	ctx := c.Request().Context()
-	if !c.Get("admin").(bool) {
-		traceid := util.RandomString(8)
-		log.Logger.Err(errors.New("not an admin")).Str("traceid", traceid).Msg("")
-		return c.JSON(http.StatusForbidden, echo.Map{
-			"message": "only admins can modify users in project",
-			"traceid": traceid,
-		})
-	}
 	userToDelete := c.Param("userid")
 	userToDeleteUUID, err := uuid.FromString(userToDelete)
 	if err != nil {
