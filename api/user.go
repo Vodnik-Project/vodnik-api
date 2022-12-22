@@ -39,7 +39,7 @@ func (s *Server) CreateUser(c echo.Context) error {
 	err = util.CheckEmpty(user, []string{"Username", "Email", "Password"})
 	if err != nil {
 		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg(err.Error())
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
 			"message": err.Error(),
 			"traceid": traceid,
