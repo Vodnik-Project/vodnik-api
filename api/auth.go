@@ -125,7 +125,7 @@ func (s Server) Login(c echo.Context) error {
 		})
 	}
 	return c.JSON(http.StatusOK, echo.Map{
-		"Access_Token":  accessToken,
+		"access_token":  accessToken,
 		"refresh_Token": refreshToken,
 	})
 }
