@@ -15,11 +15,11 @@ import (
 func skipper(c echo.Context) bool {
 	if c.Request().Method == "POST" {
 		switch c.Path() {
-		case "/user":
+		case "/api/user":
 			return true
-		case "/login":
+		case "/api/login":
 			return true
-		case "/refresh_token":
+		case "/api/refresh_token":
 			return true
 		}
 	}
@@ -34,8 +34,8 @@ func (s Server) isProjectOwner(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			traceid := util.RandomString(8)
 			log.Logger.Err(err).Str("traceid", traceid).Msg("")
-			return c.JSON(http.StatusInternalServerError, echo.Map{
-				"message": "an error occurred while processing your request",
+			return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+				"message": "invalid projectID",
 				"traceid": traceid,
 			})
 		}
@@ -82,7 +82,7 @@ func (s Server) isInProject(next echo.HandlerFunc) echo.HandlerFunc {
 			traceid := util.RandomString(8)
 			log.Logger.Err(err).Str("traceid", traceid).Msg("")
 			return c.JSON(http.StatusInternalServerError, echo.Map{
-				"message": "an error occurred while processing your request",
+				"message": "invalid projectID",
 				"traceid": traceid,
 			})
 		}
