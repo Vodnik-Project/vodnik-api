@@ -114,3 +114,17 @@ func (s Server) isInProject(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+func (s Server) isProjectAdmin(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if !c.Get("admin").(bool) {
+			traceid := util.RandomString(8)
+			log.Logger.Err(errors.New("not an admin")).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusForbidden, echo.Map{
+				"message": "only admins can modify users in project",
+				"traceid": traceid,
+			})
+		}
+		return next(c)
+	}
+}
