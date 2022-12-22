@@ -273,6 +273,6 @@ func (s Server) DeleteUserFromProject(c echo.Context) error {
 		})
 	}
 	return c.JSON(http.StatusOK, echo.Map{
-		"message": "user added to project successfully",
+		"message": "user deleted from project successfully",
 	})
 }
