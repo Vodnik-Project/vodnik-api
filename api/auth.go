@@ -2,11 +2,12 @@ package api
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/Vodnik-Project/vodnik-api/auth"
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
+	log "github.com/Vodnik-Project/vodnik-api/logger"
 	"github.com/Vodnik-Project/vodnik-api/util"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
@@ -19,47 +20,95 @@ type loginRequest struct {
 	Password string `json:"password"`
 }
 
-type loginRespond struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
 func (s Server) Login(c echo.Context) error {
 	ctx := c.Request().Context()
 	var reqData loginRequest
 	err := c.Bind(&reqData)
 	if err != nil {
-		msg := fmt.Errorf("can't bind data: %v", err)
-		return c.JSON(http.StatusUnprocessableEntity, msg.Error())
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("can't parse input data")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "invalid input",
+			"traceid": traceid,
+		})
 	}
 	err = util.CheckEmpty(reqData, []string{"Email", "Password"})
 	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, err.Error())
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": err.Error(),
+			"traceid": traceid,
+		})
 	}
 	user, err := s.store.GetUserByEmail(ctx, reqData.Email)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, "user not found")
+		traceid := util.RandomString(8)
+		if err == sql.ErrNoRows {
+			log.Logger.Err(err).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusNotFound, echo.Map{
+				"message": "no user found",
+				"traceid": traceid,
+			})
+		}
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
 	}
 	if err = bcrypt.CompareHashAndPassword([]byte(user.PassHash), []byte(reqData.Password)); err != nil {
-		return c.JSON(http.StatusUnauthorized, err.Error())
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusUnauthorized, echo.Map{
+			"message": "wrong password",
+			"traceid": traceid,
+		})
 	}
 	accessToken, err := s.tokenMaker.CreateAccessToken(user.UserID.String(), user.Username)
 	if err != nil {
-		msg := fmt.Errorf("can't create access token: %v", err)
-		return c.JSON(http.StatusInternalServerError, msg.Error())
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
 	}
 	sessionID := util.GetSessionID(c.Request().UserAgent(), c.Request().Header.Get("Accept-Language"))
 	refreshToken, err := s.tokenMaker.CreateRefreshToken()
 	if err != nil {
-		msg := fmt.Errorf("can't create refresh token: %v", err)
-		return c.JSON(http.StatusInternalServerError, msg.Error())
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
 	}
 	oldSession, err := s.store.GetDeviceSession(ctx, sqlc.GetDeviceSessionParams{
 		UserID:      user.UserID,
 		Fingerprint: sessionID,
 	})
-	if err != sql.ErrNoRows {
-		s.store.DeleteSession(ctx, oldSession.Token)
+
+	switch err {
+	case sql.ErrNoRows:
+		break
+	case nil:
+		err = s.store.DeleteSession(ctx, oldSession.Token)
+		if err != nil {
+			traceid := util.RandomString(8)
+			log.Logger.Err(err).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusInternalServerError, echo.Map{
+				"message": "an error occurred while processing your request",
+				"traceid": traceid,
+			})
+		}
+	default:
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
 	}
 	err = s.store.SetSession(ctx, sqlc.SetSessionParams{
 		Token:       refreshToken,
@@ -68,12 +117,16 @@ func (s Server) Login(c echo.Context) error {
 		Device:      c.Request().UserAgent(),
 	})
 	if err != nil {
-		msg := fmt.Errorf("can't save refresh token to db: %v", err)
-		return c.JSON(http.StatusUnauthorized, msg.Error())
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
 	}
-	return c.JSON(http.StatusOK, loginRespond{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+	return c.JSON(http.StatusOK, echo.Map{
+		"Access_Token":  accessToken,
+		"refresh_Token": refreshToken,
 	})
 }
 
@@ -87,44 +140,89 @@ func (s Server) Refresh_token(c echo.Context) error {
 	var refreshToken refreshTokenRequest
 	err := c.Bind(&refreshToken)
 	if err != nil {
-		msg := fmt.Errorf("can't bind data: %v", err)
-		return c.JSON(http.StatusUnprocessableEntity, msg.Error())
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("can't parse input data")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "invalid input",
+			"traceid": traceid,
+		})
 	}
 	var payload auth.RefreshTokenPayload
 	_, err = jwt.ParseWithClaims(refreshToken.RefreshToken, &payload, func(t *jwt.Token) (interface{}, error) {
 		return []byte(s.tokenSecret), nil
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid refresh token")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "invalid refresh token",
+			"traceid": traceid,
+		})
 	}
 	session, err := s.store.GetSessionByToken(ctx, refreshToken.RefreshToken)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, "not a valid refresh token")
+		switch err {
+		case sql.ErrNoRows:
+			traceid := util.RandomString(8)
+			log.Logger.Err(err).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusUnauthorized, echo.Map{
+				"message": "invalid refresh token",
+				"traceid": traceid,
+			})
+		default:
+			traceid := util.RandomString(8)
+			log.Logger.Err(err).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusInternalServerError, echo.Map{
+				"message": "an error occurred while processing your request",
+				"traceid": traceid,
+			})
+		}
 	}
 	userUUID, err := uuid.FromString(refreshToken.UserID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, "can't parse uuid")
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("can't parse userid from refresh token")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
+	}
+	if session.UserID != userUUID {
+		traceid := util.RandomString(8)
+		log.Logger.Err(errors.New("session userid doesn't match")).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusUnauthorized, echo.Map{
+			"message": "wrong userid",
+			"traceid": traceid,
+		})
+	}
+	sessionID := util.GetSessionID(c.Request().UserAgent(), c.Request().Header.Get("Accept-Language"))
+	if sessionID != session.Fingerprint {
+		traceid := util.RandomString(8)
+		log.Logger.Err(errors.New("unauthorized client")).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusUnauthorized, echo.Map{
+			"message": "unauthorized client",
+			"traceid": traceid,
+		})
 	}
 	user, err := s.store.GetUserById(ctx, userUUID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
 	}
-	if user.UserID != session.UserID {
-		return c.JSON(http.StatusUnauthorized, "not valid user")
-	}
-	if user.UserID != userUUID {
-		return c.JSON(http.StatusUnauthorized, "not valid user")
-	}
-	sessionID := util.GetSessionID(c.Request().UserAgent(), c.Request().Header.Get("Accept-Language"))
-
-	if sessionID != session.Fingerprint {
-		return c.JSON(http.StatusUnauthorized, "not valid user")
-	}
-
-	accessToken, err := s.tokenMaker.CreateAccessToken(user.UserID.String(), user.Username)
+	accessToken, err := s.tokenMaker.CreateAccessToken(userUUID.String(), user.Username)
 	if err != nil {
-		msg := fmt.Errorf("can't create access token: %v", err)
-		return c.JSON(http.StatusInternalServerError, msg.Error())
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
 	}
-	return c.JSON(http.StatusOK, echo.Map{"access_token": accessToken})
+	return c.JSON(http.StatusOK, echo.Map{
+		"access_token": accessToken,
+	})
 }
