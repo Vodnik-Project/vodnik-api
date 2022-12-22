@@ -29,7 +29,7 @@ CREATE TABLE "tasks" (
   "title" varchar NOT NULL,
   "info" varchar,
   "tag" varchar,
-  "created_by" uuid,
+  "created_by" uuid NOT NULL,
   "created_at" timestamptz DEFAULT (now()),
   "beggining" timestamptz DEFAULT (now()),
   "deadline" timestamptz,

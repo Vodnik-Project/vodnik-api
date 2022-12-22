@@ -27,7 +27,7 @@ type CreateTaskParams struct {
 	Title     string         `json:"title"`
 	Info      sql.NullString `json:"info"`
 	Tag       sql.NullString `json:"tag"`
-	CreatedBy uuid.NullUUID  `json:"created_by"`
+	CreatedBy uuid.UUID      `json:"created_by"`
 	Beggining sql.NullTime   `json:"beggining"`
 	Deadline  sql.NullTime   `json:"deadline"`
 	Color     sql.NullString `json:"color"`
@@ -136,12 +136,12 @@ func (q *Queries) GetTasksByProjectID(ctx context.Context, projectID uuid.UUID) 
 const updateTask = `-- name: UpdateTask :one
 
 UPDATE tasks SET
-  title =     COALESCE(NULLIF($1, 'NULL'), title),
-  info =      COALESCE(NULLIF($2, 'NULL'), info),
-  tag =       COALESCE(NULLIF($3, 'NULL'), tag),
+  title =     COALESCE(NULLIF($1, ''), title),
+  info =      COALESCE(NULLIF($2, ''), info),
+  tag =       COALESCE(NULLIF($3, ''), tag),
   beggining = COALESCE($4, beggining),
   deadline =  COALESCE($5, deadline),
-  color =     COALESCE(NULLIF($6, 'NULL'), color)
+  color =     COALESCE(NULLIF($6, ''), color)
 WHERE task_id = $7
 RETURNING task_id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color
 `

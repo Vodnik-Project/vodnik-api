@@ -32,7 +32,7 @@ type Task struct {
 	Title     string         `json:"title"`
 	Info      sql.NullString `json:"info"`
 	Tag       sql.NullString `json:"tag"`
-	CreatedBy uuid.NullUUID  `json:"created_by"`
+	CreatedBy uuid.UUID      `json:"created_by"`
 	CreatedAt sql.NullTime   `json:"created_at"`
 	Beggining sql.NullTime   `json:"beggining"`
 	Deadline  sql.NullTime   `json:"deadline"`
