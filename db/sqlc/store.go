@@ -1,14 +1,16 @@
 package sqlc
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
+
+	"github.com/labstack/echo/v4"
 )
 
 type Store interface {
 	Querier
-	CreateProjectTx(ctx context.Context, args CreateProjectParams) (interface{}, error)
+	CreateProjectTx(c echo.Context, args CreateProjectParams) error
+	CreateTaskTx(c echo.Context, args CreateTaskParams) error
 }
 
 type SQLStore struct {
@@ -23,20 +25,21 @@ func NewStore(db *sql.DB) Store {
 	}
 }
 
-func (s SQLStore) execTx(ctx context.Context, fn func(*Queries) (interface{}, error)) (interface{}, error) {
+func (s SQLStore) execTx(c echo.Context, fn func(*Queries) error) error {
+	ctx := c.Request().Context()
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	q := New(tx)
-	n, err := fn(q)
+	err = fn(q)
 	if err != nil {
 		rberr := tx.Rollback()
 		if rberr != nil {
-			return nil, fmt.Errorf("rberr: %v, txerr: %v", rberr, err)
+			return fmt.Errorf("rberr: %v, txerr: %v", rberr, err)
 		}
-		return nil, err
+		return err
 	}
-	return n, tx.Commit()
+	return tx.Commit()
 }

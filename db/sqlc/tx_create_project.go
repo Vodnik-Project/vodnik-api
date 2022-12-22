@@ -1,25 +1,25 @@
 package sqlc
 
 import (
-	"context"
 	"database/sql"
+
+	"github.com/labstack/echo/v4"
 )
 
-func (s SQLStore) CreateProjectTx(ctx context.Context, args CreateProjectParams) (interface{}, error) {
-	project, err := s.execTx(ctx, func(q *Queries) (interface{}, error) {
+func (s SQLStore) CreateProjectTx(c echo.Context, args CreateProjectParams) error {
+	err := s.execTx(c, func(q *Queries) error {
+		ctx := c.Request().Context()
 		project, err := s.Queries.CreateProject(ctx, args)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		_, err = s.Queries.AddUserToProject(ctx, AddUserToProjectParams{
 			UserID:    args.OwnerID.UUID,
 			ProjectID: project.ProjectID,
 			Admin:     sql.NullBool{Bool: true, Valid: true},
 		})
-		if err != nil {
-			return nil, err
-		}
-		return project, err
+		c.Set("project", project)
+		return err
 	})
-	return project, err
+	return err
 }
