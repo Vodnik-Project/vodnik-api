@@ -27,7 +27,6 @@ type projectDataResponse struct {
 }
 
 func (s Server) CreateProject(c echo.Context) error {
-	ctx := c.Request().Context()
 	var project projectDataRequest
 	err := c.Bind(&project)
 	if err != nil {
@@ -57,19 +56,10 @@ func (s Server) CreateProject(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	userID, err := s.store.GetUserById(ctx, userUUID)
-	if err != nil {
-		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg("")
-		return c.JSON(http.StatusInternalServerError, echo.Map{
-			"message": "an error occurred while processing your request",
-			"traceid": traceid,
-		})
-	}
-	createdProject, err := s.store.CreateProjectTx(ctx, sqlc.CreateProjectParams{
+	err = s.store.CreateProjectTx(c, sqlc.CreateProjectParams{
 		Title:   project.Title,
 		Info:    sql.NullString{String: project.Info, Valid: true},
-		OwnerID: uuid.NullUUID{UUID: userID.UserID, Valid: true},
+		OwnerID: uuid.NullUUID{UUID: userUUID, Valid: true},
 	})
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -79,7 +69,7 @@ func (s Server) CreateProject(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	createdProjectData := createdProject.(sqlc.Project)
+	createdProjectData := c.Get("project").(sqlc.Project)
 	responseData := projectDataResponse{
 		ProjectID: createdProjectData.ProjectID.String(),
 		Title:     createdProjectData.Title,
