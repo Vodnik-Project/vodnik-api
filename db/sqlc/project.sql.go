@@ -71,19 +71,26 @@ func (q *Queries) GetProjectData(ctx context.Context, projectID uuid.UUID) (Proj
 const updateProject = `-- name: UpdateProject :one
 UPDATE projects SET
   title = COALESCE(NULLIF($1, ''), title),
-  info = COALESCE(NULLIF($2, ''), info)
-WHERE project_id = $3
+  info = COALESCE(NULLIF($2, ''), info),
+  owner_id = COALESCE(NULLIF($3, uuid '00000000-0000-0000-0000-000000000000'), owner_id)
+WHERE project_id = $4
 RETURNING project_id, title, info, owner_id, created_at
 `
 
 type UpdateProjectParams struct {
 	Title     interface{} `json:"title"`
 	Info      interface{} `json:"info"`
+	OwnerID   interface{} `json:"owner_id"`
 	ProjectID uuid.UUID   `json:"project_id"`
 }
 
 func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error) {
-	row := q.queryRow(ctx, q.updateProjectStmt, updateProject, arg.Title, arg.Info, arg.ProjectID)
+	row := q.queryRow(ctx, q.updateProjectStmt, updateProject,
+		arg.Title,
+		arg.Info,
+		arg.OwnerID,
+		arg.ProjectID,
+	)
 	var i Project
 	err := row.Scan(
 		&i.ProjectID,

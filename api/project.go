@@ -97,6 +97,11 @@ func (s Server) GetProjectData(c echo.Context) error {
 				"traceid": traceid,
 			})
 		}
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
 	}
 	responseData := projectDataResponse{
 		ProjectID: project.ProjectID.String(),
@@ -111,9 +116,15 @@ func (s Server) GetProjectData(c echo.Context) error {
 	})
 }
 
+type updateProjectRequest struct {
+	Title   string `json:"title"`
+	Info    string `json:"info"`
+	OwnerID string `json:"owner_id"`
+}
+
 func (s Server) UpdateProject(c echo.Context) error {
 	ctx := c.Request().Context()
-	var updateProjectData projectDataRequest
+	var updateProjectData updateProjectRequest
 	err := c.Bind(&updateProjectData)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -123,7 +134,7 @@ func (s Server) UpdateProject(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	if updateProjectData == (projectDataRequest{}) {
+	if updateProjectData == (updateProjectRequest{}) {
 		traceid := util.RandomString(8)
 		log.Logger.Err(errors.New("input data is empty")).Str("traceid", traceid).Msg("")
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
@@ -131,9 +142,31 @@ func (s Server) UpdateProject(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
+	var ownerUUID uuid.UUID
+	if updateProjectData.OwnerID != "" {
+		ownerUUID, err = uuid.FromString(updateProjectData.OwnerID)
+		if err != nil {
+			traceid := util.RandomString(8)
+			log.Logger.Err(err).Str("traceid", traceid).Msg("invalid ownerID")
+			return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+				"message": "invalid ownerID",
+				"traceid": traceid,
+			})
+		}
+		_, err = s.store.GetUserById(ctx, ownerUUID)
+		if err != nil {
+			traceid := util.RandomString(8)
+			log.Logger.Err(err).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusNotFound, echo.Map{
+				"message": "no user found to change ownership",
+				"traceid": traceid,
+			})
+		}
+	}
 	updatedProject, err := s.store.UpdateProject(ctx, sqlc.UpdateProjectParams{
 		Title:     updateProjectData.Title,
 		Info:      updateProjectData.Info,
+		OwnerID:   ownerUUID,
 		ProjectID: c.Get("projectUUID").(uuid.UUID),
 	})
 	if err != nil {
