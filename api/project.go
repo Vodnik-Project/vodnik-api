@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Vodnik-Project/vodnik-api/auth"
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	log "github.com/Vodnik-Project/vodnik-api/logger"
 	"github.com/Vodnik-Project/vodnik-api/util"
 	"github.com/gofrs/uuid"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -46,7 +48,7 @@ func (s Server) CreateProject(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	userid := util.GetFieldFromPayload(c, "UserID")
+	userid := c.Get("user").(*jwt.Token).Claims.(*auth.AccessTokenPayload).UserID
 	userUUID, err := uuid.FromString(userid)
 	if err != nil {
 		traceid := util.RandomString(8)
