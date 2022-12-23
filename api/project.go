@@ -86,6 +86,50 @@ func (s Server) CreateProject(c echo.Context) error {
 	})
 }
 
+func (s Server) GetUserProjects(c echo.Context) error {
+	ctx := c.Request().Context()
+	userid := c.Get("user").(*jwt.Token).Claims.(*auth.AccessTokenPayload).UserID
+	userUUID, err := uuid.FromString(userid)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
+	}
+	projects, err := s.store.GetProjectsByUserID(ctx, userUUID)
+	if err != nil {
+		traceid := util.RandomString(8)
+		if err == sql.ErrNoRows {
+			log.Logger.Err(err).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusNotFound, echo.Map{
+				"message": "no project found",
+				"traceid": traceid,
+			})
+		}
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
+	}
+	var responseData []projectDataResponse
+	for _, p := range projects {
+		responseData = append(responseData, projectDataResponse{
+			ProjectID: p.ProjectID.String(),
+			Title:     p.Title,
+			Info:      p.Info.String,
+			OwnerID:   p.OwnerID.UUID.String(),
+			CreatedAt: p.CreatedAt.Time.Format(time.RFC3339),
+		})
+	}
+	return c.JSON(http.StatusOK, echo.Map{
+		"message":  "user's projects found",
+		"projects": responseData,
+	})
+}
+
 func (s Server) GetProjectData(c echo.Context) error {
 	ctx := c.Request().Context()
 	projectUUID := c.Get("projectUUID").(uuid.UUID)

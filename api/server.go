@@ -37,6 +37,7 @@ func NewServer(store sqlc.Store, tokenSecret string, tokenMaker auth.TokenMaker)
 	user.GET("/:userid", server.GetUserData)
 	user.PUT("", server.UpdateUser)
 	user.DELETE("", server.DeleteUser)
+	user.GET("/projects", server.GetUserProjects)
 
 	project := api.Group("/project")
 	project.POST("", server.CreateProject)
