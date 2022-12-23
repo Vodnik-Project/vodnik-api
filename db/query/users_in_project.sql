@@ -6,12 +6,20 @@ INSERT INTO usersinproject (
 ) RETURNING *;
 
 -- name: GetProjectsByUserID :many
-SELECT * FROM usersinproject
-WHERE user_id = $1;
+SELECT projects.project_id, projects.title, projects.info, projects.owner_id, projects.created_at, 
+       usersinproject.admin 
+FROM projects
+INNER JOIN usersinproject 
+ON projects.project_id=usersinproject.project_id 
+WHERE usersinproject.user_id=$1;
 
 -- name: GetUsersByProjectID :many
-SELECT * FROM usersinproject
-WHERE project_id = $1;
+SELECT users.user_id, users.username, users.bio,
+       usersinproject.project_id, usersinproject.added_at, usersinproject.admin 
+FROM users
+INNER JOIN usersinproject
+ON users.user_id=usersinproject.user_id
+WHERE usersinproject.project_id = $1;
 
 -- name: IsUserInProject :one
 SELECT * FROM usersinproject
@@ -19,8 +27,4 @@ WHERE user_id = $1 AND project_id = $2;
 
 -- name: DeleteUserFromProject :exec
 DELETE FROM usersinproject
-WHERE user_id = $1 AND project_id = $2;
-
--- name: IsAdmin :one
-SELECT * FROM usersinproject
 WHERE user_id = $1 AND project_id = $2;

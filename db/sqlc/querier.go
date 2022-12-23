@@ -25,16 +25,15 @@ type Querier interface {
 	DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTaskParams) error
 	GetDeviceSession(ctx context.Context, arg GetDeviceSessionParams) (RefreshToken, error)
 	GetProjectData(ctx context.Context, projectID uuid.UUID) (Project, error)
-	GetProjectsByUserID(ctx context.Context, userID uuid.UUID) ([]Usersinproject, error)
+	GetProjectsByUserID(ctx context.Context, userID uuid.UUID) ([]GetProjectsByUserIDRow, error)
 	GetSessionByToken(ctx context.Context, token string) (RefreshToken, error)
 	GetTaskData(ctx context.Context, taskID uuid.UUID) (Task, error)
 	GetTasksByProjectID(ctx context.Context, projectID uuid.UUID) ([]Task, error)
 	GetTasksByUserID(ctx context.Context, userID uuid.UUID) ([]Usersintask, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID uuid.UUID) (User, error)
-	GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) ([]Usersinproject, error)
+	GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) ([]GetUsersByProjectIDRow, error)
 	GetUsersByTaskID(ctx context.Context, taskID uuid.UUID) ([]Usersintask, error)
-	IsAdmin(ctx context.Context, arg IsAdminParams) (Usersinproject, error)
 	IsUserInProject(ctx context.Context, arg IsUserInProjectParams) (Usersinproject, error)
 	SetSession(ctx context.Context, arg SetSessionParams) error
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)

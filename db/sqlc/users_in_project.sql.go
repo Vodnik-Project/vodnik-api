@@ -54,23 +54,38 @@ func (q *Queries) DeleteUserFromProject(ctx context.Context, arg DeleteUserFromP
 }
 
 const getProjectsByUserID = `-- name: GetProjectsByUserID :many
-SELECT project_id, user_id, added_at, admin FROM usersinproject
-WHERE user_id = $1
+SELECT projects.project_id, projects.title, projects.info, projects.owner_id, projects.created_at, 
+       usersinproject.admin 
+FROM projects
+INNER JOIN usersinproject 
+ON projects.project_id=usersinproject.project_id 
+WHERE usersinproject.user_id=$1
 `
 
-func (q *Queries) GetProjectsByUserID(ctx context.Context, userID uuid.UUID) ([]Usersinproject, error) {
+type GetProjectsByUserIDRow struct {
+	ProjectID uuid.UUID      `json:"project_id"`
+	Title     string         `json:"title"`
+	Info      sql.NullString `json:"info"`
+	OwnerID   uuid.NullUUID  `json:"owner_id"`
+	CreatedAt sql.NullTime   `json:"created_at"`
+	Admin     sql.NullBool   `json:"admin"`
+}
+
+func (q *Queries) GetProjectsByUserID(ctx context.Context, userID uuid.UUID) ([]GetProjectsByUserIDRow, error) {
 	rows, err := q.query(ctx, q.getProjectsByUserIDStmt, getProjectsByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Usersinproject
+	var items []GetProjectsByUserIDRow
 	for rows.Next() {
-		var i Usersinproject
+		var i GetProjectsByUserIDRow
 		if err := rows.Scan(
 			&i.ProjectID,
-			&i.UserID,
-			&i.AddedAt,
+			&i.Title,
+			&i.Info,
+			&i.OwnerID,
+			&i.CreatedAt,
 			&i.Admin,
 		); err != nil {
 			return nil, err
@@ -87,22 +102,37 @@ func (q *Queries) GetProjectsByUserID(ctx context.Context, userID uuid.UUID) ([]
 }
 
 const getUsersByProjectID = `-- name: GetUsersByProjectID :many
-SELECT project_id, user_id, added_at, admin FROM usersinproject
-WHERE project_id = $1
+SELECT users.user_id, users.username, users.bio,
+       usersinproject.project_id, usersinproject.added_at, usersinproject.admin 
+FROM users
+INNER JOIN usersinproject
+ON users.user_id=usersinproject.user_id
+WHERE usersinproject.project_id = $1
 `
 
-func (q *Queries) GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) ([]Usersinproject, error) {
+type GetUsersByProjectIDRow struct {
+	UserID    uuid.UUID      `json:"user_id"`
+	Username  string         `json:"username"`
+	Bio       sql.NullString `json:"bio"`
+	ProjectID uuid.UUID      `json:"project_id"`
+	AddedAt   sql.NullTime   `json:"added_at"`
+	Admin     sql.NullBool   `json:"admin"`
+}
+
+func (q *Queries) GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) ([]GetUsersByProjectIDRow, error) {
 	rows, err := q.query(ctx, q.getUsersByProjectIDStmt, getUsersByProjectID, projectID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Usersinproject
+	var items []GetUsersByProjectIDRow
 	for rows.Next() {
-		var i Usersinproject
+		var i GetUsersByProjectIDRow
 		if err := rows.Scan(
-			&i.ProjectID,
 			&i.UserID,
+			&i.Username,
+			&i.Bio,
+			&i.ProjectID,
 			&i.AddedAt,
 			&i.Admin,
 		); err != nil {
@@ -117,28 +147,6 @@ func (q *Queries) GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) 
 		return nil, err
 	}
 	return items, nil
-}
-
-const isAdmin = `-- name: IsAdmin :one
-SELECT project_id, user_id, added_at, admin FROM usersinproject
-WHERE user_id = $1 AND project_id = $2
-`
-
-type IsAdminParams struct {
-	UserID    uuid.UUID `json:"user_id"`
-	ProjectID uuid.UUID `json:"project_id"`
-}
-
-func (q *Queries) IsAdmin(ctx context.Context, arg IsAdminParams) (Usersinproject, error) {
-	row := q.queryRow(ctx, q.isAdminStmt, isAdmin, arg.UserID, arg.ProjectID)
-	var i Usersinproject
-	err := row.Scan(
-		&i.ProjectID,
-		&i.UserID,
-		&i.AddedAt,
-		&i.Admin,
-	)
-	return i, err
 }
 
 const isUserInProject = `-- name: IsUserInProject :one
