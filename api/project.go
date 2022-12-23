@@ -230,19 +230,10 @@ func (s Server) GetUsersInProject(c echo.Context) error {
 	}
 	var responseData []usersInProjectResponse
 	for _, i := range usersInProject {
-		user, err := s.store.GetUserById(ctx, i.UserID)
-		if err != nil {
-			traceid := util.RandomString(8)
-			log.Logger.Err(err).Str("traceid", traceid).Msg("")
-			return c.JSON(http.StatusInternalServerError, echo.Map{
-				"message": "an error occurred while processing your request",
-				"traceid": traceid,
-			})
-		}
 		responseData = append(responseData, usersInProjectResponse{
-			UserID:         user.UserID.String(),
-			Username:       user.Username,
-			Bio:            user.Bio.String,
+			UserID:         i.UserID.String(),
+			Username:       i.Username,
+			Bio:            i.Bio.String,
 			AddedToProject: i.AddedAt.Time.Format(time.RFC3339),
 			Admin:          i.Admin.Bool,
 		})
