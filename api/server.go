@@ -48,14 +48,15 @@ func NewServer(store sqlc.Store, tokenSecret string, tokenMaker auth.TokenMaker)
 	project.DELETE("/:projectid/user/:userid", server.DeleteUserFromProject, server.isInProject, server.isProjectAdmin)
 
 	task := api.Group("/project/:projectid/task")
-	task.POST("", server.CreateTask, server.isInProject, server.isProjectAdmin)
-	task.GET("/:taskid", server.GetTaskData, server.isInProject)
-	task.GET("/byproject/:projectid", server.GetTasksByProjectID, server.isInProject)
-	task.PUT("/:taskid", server.UpdateTask, server.isInProject, server.isProjectAdmin)
-	task.DELETE("/:taskid", server.DeleteTask, server.isInProject, server.isProjectAdmin)
-	task.GET("/:taskid/users", server.GetUsersInTask, server.isInProject)
-	task.POST("/:taskid/user/:username", server.AddUserToTask, server.isInProject, server.isProjectAdmin)
-	task.DELETE("/:taskid/user/:username", server.DeleteUserFromTask, server.isInProject, server.isProjectAdmin)
+	task.Use(server.isInProject)
+	task.POST("", server.CreateTask, server.isProjectAdmin)
+	task.GET("/:taskid", server.GetTaskData)
+	task.GET("/byproject/:projectid", server.GetTasksByProjectID)
+	task.PUT("/:taskid", server.UpdateTask, server.isProjectAdmin)
+	task.DELETE("/:taskid", server.DeleteTask, server.isProjectAdmin)
+	task.GET("/:taskid/users", server.GetUsersInTask)
+	task.POST("/:taskid/user/:username", server.AddUserToTask, server.isProjectAdmin)
+	task.DELETE("/:taskid/user/:username", server.DeleteUserFromTask, server.isProjectAdmin)
 
 	server.e = e
 	return server
