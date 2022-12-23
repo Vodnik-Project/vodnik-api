@@ -258,7 +258,29 @@ func (s Server) UpdateTask(c echo.Context) error {
 }
 
 func (s Server) DeleteTask(c echo.Context) error {
-	return nil
+	ctx := c.Request().Context()
+	taskID := c.Param("taskid")
+	taskUUID, err := uuid.FromString(taskID)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "invalid taskID",
+			"traceid": traceid,
+		})
+	}
+	err = s.store.DeleteTask(ctx, taskUUID)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
+	}
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "task deleted successfully",
+	})
 }
 
 func (s Server) GetUsersInTask(c echo.Context) error {
