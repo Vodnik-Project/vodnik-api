@@ -96,11 +96,72 @@ func (q *Queries) GetTaskData(ctx context.Context, taskID uuid.UUID) (Task, erro
 
 const getTasksByProjectID = `-- name: GetTasksByProjectID :many
 SELECT task_id, project_id, title, info, tag, created_by, created_at, beggining, deadline, color FROM tasks
-WHERE project_id = $1
+WHERE project_id = $1 AND
+      title =       COALESCE(NULLIF($4, ''), title) AND
+      info =        COALESCE(NULLIF($5, ''), info) AND
+      tag =         COALESCE(NULLIF($6, ''), tag) AND
+      created_by =  COALESCE(NULLIF($7, uuid '00000000-0000-0000-0000-000000000000'), created_by) AND
+      created_at >= COALESCE(NULLIF($8, timestamptz '0001-01-01 03:25:44+03:25:44'), created_at) AND
+      created_at <= COALESCE(NULLIF($9, timestamptz '0001-01-01 03:25:44+03:25:44'), created_at) AND
+      beggining >=  COALESCE(NULLIF($10, timestamptz '0001-01-01 03:25:44+03:25:44'), beggining) AND
+      beggining <=  COALESCE(NULLIF($11, timestamptz '0001-01-01 03:25:44+03:25:44'), beggining) AND
+      deadline >=   COALESCE(NULLIF($12, timestamptz '0001-01-01 03:25:44+03:25:44'), deadline) AND
+      deadline <=   COALESCE(NULLIF($13, timestamptz '0001-01-01 03:25:44+03:25:44'), deadline)
+ORDER BY
+  CASE WHEN $14 = 'asc' THEN
+    CASE
+      WHEN $15 = 'created_at' THEN created_at
+      WHEN $15 = 'beggining' THEN beggining
+      WHEN $15 = 'deadline' THEN deadline
+    END
+  END ASC,
+  CASE WHEN $14 = 'desc' THEN
+    CASE
+      WHEN $15 = 'created_at' THEN created_at
+      WHEN $15 = 'beggining' THEN beggining
+      WHEN $15 = 'deadline' THEN deadline
+    END
+  END DESC
+LIMIT $2
+OFFSET $3
 `
 
-func (q *Queries) GetTasksByProjectID(ctx context.Context, projectID uuid.UUID) ([]Task, error) {
-	rows, err := q.query(ctx, q.getTasksByProjectIDStmt, getTasksByProjectID, projectID)
+type GetTasksByProjectIDParams struct {
+	ProjectID      uuid.UUID   `json:"project_id"`
+	Limit          int32       `json:"limit"`
+	Offset         int32       `json:"offset"`
+	Title          interface{} `json:"title"`
+	Info           interface{} `json:"info"`
+	Tag            interface{} `json:"tag"`
+	CreatedBy      interface{} `json:"created_by"`
+	CreatedAtFrom  interface{} `json:"created_at_from"`
+	CreatedAtUntil interface{} `json:"created_at_until"`
+	BegginingFrom  interface{} `json:"beggining_from"`
+	BegginingUntil interface{} `json:"beggining_until"`
+	DeadlineFrom   interface{} `json:"deadline_from"`
+	DeadlineUntil  interface{} `json:"deadline_until"`
+	Sortdirection  interface{} `json:"sortdirection"`
+	Sortby         interface{} `json:"sortby"`
+}
+
+func (q *Queries) GetTasksByProjectID(ctx context.Context, arg GetTasksByProjectIDParams) ([]Task, error) {
+	rows, err := q.query(ctx, q.getTasksByProjectIDStmt, getTasksByProjectID,
+		arg.ProjectID,
+		arg.Limit,
+		arg.Offset,
+		arg.Title,
+		arg.Info,
+		arg.Tag,
+		arg.CreatedBy,
+		arg.CreatedAtFrom,
+		arg.CreatedAtUntil,
+		arg.BegginingFrom,
+		arg.BegginingUntil,
+		arg.DeadlineFrom,
+		arg.DeadlineUntil,
+		arg.Sortdirection,
+		arg.Sortby,
+	)
 	if err != nil {
 		return nil, err
 	}

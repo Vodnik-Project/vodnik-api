@@ -28,7 +28,7 @@ type Querier interface {
 	GetProjectsByUserID(ctx context.Context, userID uuid.UUID) ([]GetProjectsByUserIDRow, error)
 	GetSessionByToken(ctx context.Context, token string) (RefreshToken, error)
 	GetTaskData(ctx context.Context, taskID uuid.UUID) (Task, error)
-	GetTasksByProjectID(ctx context.Context, projectID uuid.UUID) ([]Task, error)
+	GetTasksByProjectID(ctx context.Context, arg GetTasksByProjectIDParams) ([]Task, error)
 	GetTasksByUserID(ctx context.Context, userID uuid.UUID) ([]Usersintask, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID uuid.UUID) (User, error)

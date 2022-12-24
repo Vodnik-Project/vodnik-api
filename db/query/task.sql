@@ -10,7 +10,34 @@ RETURNING *;
 
 -- name: GetTasksByProjectID :many
 SELECT * FROM tasks
-WHERE project_id = $1;
+WHERE project_id = $1 AND
+      title =       COALESCE(NULLIF(@title, ''), title) AND
+      info =        COALESCE(NULLIF(@info, ''), info) AND
+      tag =         COALESCE(NULLIF(@tag, ''), tag) AND
+      created_by =  COALESCE(NULLIF(@created_by, uuid '00000000-0000-0000-0000-000000000000'), created_by) AND
+      created_at >= COALESCE(NULLIF(@created_at_from, timestamptz '0001-01-01 03:25:44+03:25:44'), created_at) AND
+      created_at <= COALESCE(NULLIF(@created_at_until, timestamptz '0001-01-01 03:25:44+03:25:44'), created_at) AND
+      beggining >=  COALESCE(NULLIF(@beggining_from, timestamptz '0001-01-01 03:25:44+03:25:44'), beggining) AND
+      beggining <=  COALESCE(NULLIF(@beggining_until, timestamptz '0001-01-01 03:25:44+03:25:44'), beggining) AND
+      deadline >=   COALESCE(NULLIF(@deadline_from, timestamptz '0001-01-01 03:25:44+03:25:44'), deadline) AND
+      deadline <=   COALESCE(NULLIF(@deadline_until, timestamptz '0001-01-01 03:25:44+03:25:44'), deadline)
+ORDER BY
+  CASE WHEN @sortDirection = 'asc' THEN
+    CASE
+      WHEN @sortBy = 'created_at' THEN created_at
+      WHEN @sortBy = 'beggining' THEN beggining
+      WHEN @sortBy = 'deadline' THEN deadline
+    END
+  END ASC,
+  CASE WHEN @sortDirection = 'desc' THEN
+    CASE
+      WHEN @sortBy = 'created_at' THEN created_at
+      WHEN @sortBy = 'beggining' THEN beggining
+      WHEN @sortBy = 'deadline' THEN deadline
+    END
+  END DESC
+LIMIT $2
+OFFSET $3;
 
 -- name: GetTaskData :one
 SELECT * FROM tasks
