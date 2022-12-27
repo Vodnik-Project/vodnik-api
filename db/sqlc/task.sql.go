@@ -122,13 +122,16 @@ ORDER BY
       WHEN $15 = 'deadline' THEN deadline
     END
   END DESC
-LIMIT $2
+LIMIT CASE
+  WHEN $2 = 0 THEN NULL
+  WHEN $2 != 0 THEN $2
+END
 OFFSET $3
 `
 
 type GetTasksByProjectIDParams struct {
 	ProjectID      uuid.UUID   `json:"project_id"`
-	Limit          int32       `json:"limit"`
+	Column2        interface{} `json:"column_2"`
 	Offset         int32       `json:"offset"`
 	Title          interface{} `json:"title"`
 	Info           interface{} `json:"info"`
@@ -147,7 +150,7 @@ type GetTasksByProjectIDParams struct {
 func (q *Queries) GetTasksByProjectID(ctx context.Context, arg GetTasksByProjectIDParams) ([]Task, error) {
 	rows, err := q.query(ctx, q.getTasksByProjectIDStmt, getTasksByProjectID,
 		arg.ProjectID,
-		arg.Limit,
+		arg.Column2,
 		arg.Offset,
 		arg.Title,
 		arg.Info,
@@ -195,7 +198,6 @@ func (q *Queries) GetTasksByProjectID(ctx context.Context, arg GetTasksByProject
 }
 
 const updateTask = `-- name: UpdateTask :one
-
 UPDATE tasks SET
   title =     COALESCE(NULLIF($1, ''), title),
   info =      COALESCE(NULLIF($2, ''), info),
@@ -217,7 +219,6 @@ type UpdateTaskParams struct {
 	TaskID    uuid.UUID   `json:"task_id"`
 }
 
-// TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
 func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error) {
 	row := q.queryRow(ctx, q.updateTaskStmt, updateTask,
 		arg.Title,

@@ -36,14 +36,15 @@ ORDER BY
       WHEN @sortBy = 'deadline' THEN deadline
     END
   END DESC
-LIMIT $2
+LIMIT CASE
+  WHEN $2 = 0 THEN NULL
+  WHEN $2 != 0 THEN $2
+END
 OFFSET $3;
 
 -- name: GetTaskData :one
 SELECT * FROM tasks
 WHERE task_id = $1;
-
--- TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
 
 -- name: UpdateTask :one
 UPDATE tasks SET
