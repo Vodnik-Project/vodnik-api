@@ -235,8 +235,8 @@ func (s Server) GetTasksByProjectID(c echo.Context) error {
 		DeadlineUntil:  deadlineUntil,
 		Sortdirection:  taskRequest.Sortdirection,
 		Sortby:         taskRequest.SortBy,
-		Limit:          taskRequest.Limit,
-		Offset:         taskRequest.Page * taskRequest.Limit,
+		Column2:        taskRequest.Limit,
+		Offset:         taskRequest.Page * taskRequest.Page,
 	})
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -390,14 +390,130 @@ func (s Server) DeleteTask(c echo.Context) error {
 	})
 }
 
+type usersInTaskData struct {
+	UserID   string `json:"userid"`
+	Username string `json:"username"`
+	Bio      string `json:"bio"`
+	AddedAt  string `json:"added_at"`
+}
+
 func (s Server) GetUsersInTask(c echo.Context) error {
-	return nil
+	ctx := c.Request().Context()
+	taskID := c.Param("taskid")
+	taskUUID, err := uuid.FromString(taskID)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "invalid taskID",
+			"traceid": traceid,
+		})
+	}
+	users, err := s.store.GetUsersByTaskID(ctx, taskUUID)
+	if err != nil {
+		traceid := util.RandomString(8)
+		if err == sql.ErrNoRows {
+			log.Logger.Err(err).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusNotFound, echo.Map{
+				"message": "no users found",
+				"traceid": traceid,
+			})
+		}
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
+	}
+	var responseData []usersInTaskData
+	for _, i := range users {
+		responseData = append(responseData, usersInTaskData{
+			UserID:   i.UserID.String(),
+			Username: i.Username,
+			Bio:      i.Bio.String,
+			AddedAt:  i.AddedAt.Time.Format(time.RFC3339),
+		})
+	}
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "users found",
+		"users":   responseData,
+	})
 }
 
 func (s Server) AddUserToTask(c echo.Context) error {
-	return nil
+	ctx := c.Request().Context()
+	userToAdd := c.Param("userid")
+	userToAddUUID, err := uuid.FromString(userToAdd)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "invalid userid",
+			"traceid": traceid,
+		})
+	}
+	taskID := c.Param("taskid")
+	taskUUID, err := uuid.FromString(taskID)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "invalid taskID",
+			"traceid": traceid,
+		})
+	}
+	_, err = s.store.AddUserToTask(ctx, sqlc.AddUserToTaskParams{
+		UserID: userToAddUUID,
+		TaskID: taskUUID,
+	})
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
+	}
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "user added to task successfully",
+	})
 }
 
 func (s Server) DeleteUserFromTask(c echo.Context) error {
-	return nil
+	ctx := c.Request().Context()
+	userToAdd := c.Param("userid")
+	userToDeleteUUID, err := uuid.FromString(userToAdd)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "invalid userid",
+			"traceid": traceid,
+		})
+	}
+	taskID := c.Param("taskid")
+	taskUUID, err := uuid.FromString(taskID)
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": "invalid taskID",
+			"traceid": traceid,
+		})
+	}
+	err = s.store.DeleteUserFromTask(ctx, sqlc.DeleteUserFromTaskParams{
+		UserID: userToDeleteUUID,
+		TaskID: taskUUID,
+	})
+	if err != nil {
+		traceid := util.RandomString(8)
+		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "an error occurred while processing your request",
+			"traceid": traceid,
+		})
+	}
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "user deleted from task successfully",
+	})
 }
