@@ -56,8 +56,8 @@ func NewServer(store sqlc.Store, tokenSecret string, tokenMaker auth.TokenMaker)
 	task.PUT("/:taskid", server.UpdateTask, server.isProjectAdmin)
 	task.DELETE("/:taskid", server.DeleteTask, server.isProjectAdmin)
 	task.GET("/:taskid/users", server.GetUsersInTask)
-	task.POST("/:taskid/user/:username", server.AddUserToTask, server.isProjectAdmin)
-	task.DELETE("/:taskid/user/:username", server.DeleteUserFromTask, server.isProjectAdmin)
+	task.POST("/:taskid/user/:userid", server.AddUserToTask, server.isProjectAdmin)
+	task.DELETE("/:taskid/user/:userid", server.DeleteUserFromTask, server.isProjectAdmin)
 
 	server.e = e
 	return server
