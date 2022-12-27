@@ -54,24 +54,51 @@ func (q *Queries) DeleteUserFromTask(ctx context.Context, arg DeleteUserFromTask
 }
 
 const getTasksByUserID = `-- name: GetTasksByUserID :many
-SELECT task_id, user_id, added_at, admin FROM usersintask
-WHERE user_id = $1
+SELECT tasks.task_id, tasks.title, tasks.info, tasks.tag, 
+        tasks.created_by, tasks.created_at, tasks.beggining, 
+        tasks.deadline, tasks.color
+FROM tasks
+INNER JOIN usersintask 
+ON tasks.task_id=usersintask.task_id 
+WHERE usersintask.user_id=$1 AND tasks.project_id=$2
 `
 
-func (q *Queries) GetTasksByUserID(ctx context.Context, userID uuid.UUID) ([]Usersintask, error) {
-	rows, err := q.query(ctx, q.getTasksByUserIDStmt, getTasksByUserID, userID)
+type GetTasksByUserIDParams struct {
+	UserID    uuid.UUID `json:"user_id"`
+	ProjectID uuid.UUID `json:"project_id"`
+}
+
+type GetTasksByUserIDRow struct {
+	TaskID    uuid.UUID      `json:"task_id"`
+	Title     string         `json:"title"`
+	Info      sql.NullString `json:"info"`
+	Tag       sql.NullString `json:"tag"`
+	CreatedBy uuid.UUID      `json:"created_by"`
+	CreatedAt sql.NullTime   `json:"created_at"`
+	Beggining sql.NullTime   `json:"beggining"`
+	Deadline  sql.NullTime   `json:"deadline"`
+	Color     sql.NullString `json:"color"`
+}
+
+func (q *Queries) GetTasksByUserID(ctx context.Context, arg GetTasksByUserIDParams) ([]GetTasksByUserIDRow, error) {
+	rows, err := q.query(ctx, q.getTasksByUserIDStmt, getTasksByUserID, arg.UserID, arg.ProjectID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Usersintask
+	var items []GetTasksByUserIDRow
 	for rows.Next() {
-		var i Usersintask
+		var i GetTasksByUserIDRow
 		if err := rows.Scan(
 			&i.TaskID,
-			&i.UserID,
-			&i.AddedAt,
-			&i.Admin,
+			&i.Title,
+			&i.Info,
+			&i.Tag,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.Beggining,
+			&i.Deadline,
+			&i.Color,
 		); err != nil {
 			return nil, err
 		}
@@ -87,24 +114,35 @@ func (q *Queries) GetTasksByUserID(ctx context.Context, userID uuid.UUID) ([]Use
 }
 
 const getUsersByTaskID = `-- name: GetUsersByTaskID :many
-SELECT task_id, user_id, added_at, admin FROM usersintask
-WHERE task_id = $1
+SELECT users.user_id, users.username, users.bio,
+       usersintask.added_at
+FROM users
+INNER JOIN usersintask
+ON users.user_id=usersintask.user_id
+WHERE usersintask.task_id = $1
 `
 
-func (q *Queries) GetUsersByTaskID(ctx context.Context, taskID uuid.UUID) ([]Usersintask, error) {
+type GetUsersByTaskIDRow struct {
+	UserID   uuid.UUID      `json:"user_id"`
+	Username string         `json:"username"`
+	Bio      sql.NullString `json:"bio"`
+	AddedAt  sql.NullTime   `json:"added_at"`
+}
+
+func (q *Queries) GetUsersByTaskID(ctx context.Context, taskID uuid.UUID) ([]GetUsersByTaskIDRow, error) {
 	rows, err := q.query(ctx, q.getUsersByTaskIDStmt, getUsersByTaskID, taskID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Usersintask
+	var items []GetUsersByTaskIDRow
 	for rows.Next() {
-		var i Usersintask
+		var i GetUsersByTaskIDRow
 		if err := rows.Scan(
-			&i.TaskID,
 			&i.UserID,
+			&i.Username,
+			&i.Bio,
 			&i.AddedAt,
-			&i.Admin,
 		); err != nil {
 			return nil, err
 		}
