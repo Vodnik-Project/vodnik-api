@@ -65,5 +65,4 @@ type Usersintask struct {
 	TaskID  uuid.UUID    `json:"task_id"`
 	UserID  uuid.UUID    `json:"user_id"`
 	AddedAt sql.NullTime `json:"added_at"`
-	Admin   sql.NullBool `json:"admin"`
 }

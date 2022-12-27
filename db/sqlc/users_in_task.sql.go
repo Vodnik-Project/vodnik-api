@@ -14,27 +14,21 @@ import (
 
 const addUserToTask = `-- name: AddUserToTask :one
 INSERT INTO usersintask (
-    user_id, task_id, admin
+    user_id, task_id
 ) VALUES (
-    $1, $2, $3
-) RETURNING task_id, user_id, added_at, admin
+    $1, $2
+) RETURNING task_id, user_id, added_at
 `
 
 type AddUserToTaskParams struct {
-	UserID uuid.UUID    `json:"user_id"`
-	TaskID uuid.UUID    `json:"task_id"`
-	Admin  sql.NullBool `json:"admin"`
+	UserID uuid.UUID `json:"user_id"`
+	TaskID uuid.UUID `json:"task_id"`
 }
 
 func (q *Queries) AddUserToTask(ctx context.Context, arg AddUserToTaskParams) (Usersintask, error) {
-	row := q.queryRow(ctx, q.addUserToTaskStmt, addUserToTask, arg.UserID, arg.TaskID, arg.Admin)
+	row := q.queryRow(ctx, q.addUserToTaskStmt, addUserToTask, arg.UserID, arg.TaskID)
 	var i Usersintask
-	err := row.Scan(
-		&i.TaskID,
-		&i.UserID,
-		&i.AddedAt,
-		&i.Admin,
-	)
+	err := row.Scan(&i.TaskID, &i.UserID, &i.AddedAt)
 	return i, err
 }
 

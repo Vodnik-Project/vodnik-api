@@ -46,8 +46,7 @@ CREATE TABLE "usersinproject" (
 CREATE TABLE "usersintask" (
   "task_id" uuid NOT NULL,
   "user_id" uuid NOT NULL,
-  "added_at" timestamptz DEFAULT (now()),
-  "admin" bool DEFAULT false
+  "added_at" timestamptz DEFAULT (now())
 );
 
 CREATE TABLE "refresh_token" (
