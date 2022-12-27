@@ -15,7 +15,7 @@ WHERE usersinproject.user_id=$1;
 
 -- name: GetUsersByProjectID :many
 SELECT users.user_id, users.username, users.bio,
-       usersinproject.project_id, usersinproject.added_at, usersinproject.admin 
+       usersinproject.added_at, usersinproject.admin 
 FROM users
 INNER JOIN usersinproject
 ON users.user_id=usersinproject.user_id

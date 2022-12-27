@@ -103,7 +103,7 @@ func (q *Queries) GetProjectsByUserID(ctx context.Context, userID uuid.UUID) ([]
 
 const getUsersByProjectID = `-- name: GetUsersByProjectID :many
 SELECT users.user_id, users.username, users.bio,
-       usersinproject.project_id, usersinproject.added_at, usersinproject.admin 
+       usersinproject.added_at, usersinproject.admin 
 FROM users
 INNER JOIN usersinproject
 ON users.user_id=usersinproject.user_id
@@ -111,12 +111,11 @@ WHERE usersinproject.project_id = $1
 `
 
 type GetUsersByProjectIDRow struct {
-	UserID    uuid.UUID      `json:"user_id"`
-	Username  string         `json:"username"`
-	Bio       sql.NullString `json:"bio"`
-	ProjectID uuid.UUID      `json:"project_id"`
-	AddedAt   sql.NullTime   `json:"added_at"`
-	Admin     sql.NullBool   `json:"admin"`
+	UserID   uuid.UUID      `json:"user_id"`
+	Username string         `json:"username"`
+	Bio      sql.NullString `json:"bio"`
+	AddedAt  sql.NullTime   `json:"added_at"`
+	Admin    sql.NullBool   `json:"admin"`
 }
 
 func (q *Queries) GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) ([]GetUsersByProjectIDRow, error) {
@@ -132,7 +131,6 @@ func (q *Queries) GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) 
 			&i.UserID,
 			&i.Username,
 			&i.Bio,
-			&i.ProjectID,
 			&i.AddedAt,
 			&i.Admin,
 		); err != nil {
