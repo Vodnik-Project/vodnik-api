@@ -29,15 +29,14 @@ type Querier interface {
 	GetSessionByToken(ctx context.Context, token string) (RefreshToken, error)
 	GetTaskData(ctx context.Context, taskID uuid.UUID) (Task, error)
 	GetTasksByProjectID(ctx context.Context, arg GetTasksByProjectIDParams) ([]Task, error)
-	GetTasksByUserID(ctx context.Context, userID uuid.UUID) ([]Usersintask, error)
+	GetTasksByUserID(ctx context.Context, arg GetTasksByUserIDParams) ([]GetTasksByUserIDRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID uuid.UUID) (User, error)
 	GetUsersByProjectID(ctx context.Context, projectID uuid.UUID) ([]GetUsersByProjectIDRow, error)
-	GetUsersByTaskID(ctx context.Context, taskID uuid.UUID) ([]Usersintask, error)
+	GetUsersByTaskID(ctx context.Context, taskID uuid.UUID) ([]GetUsersByTaskIDRow, error)
 	IsUserInProject(ctx context.Context, arg IsUserInProjectParams) (Usersinproject, error)
 	SetSession(ctx context.Context, arg SetSessionParams) error
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
-	// TODO: get tasks by filtering: title, tag, created_by, beggining, deadline
 	UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
