@@ -58,30 +58,8 @@ func (s Server) CreateTask(c echo.Context) error {
 		})
 	}
 	userUUID := c.Get("userUUID").(uuid.UUID)
-	var beggining time.Time
-	if task.Beggining != "" {
-		beggining, err = time.Parse(time.RFC3339, task.Beggining)
-		if err != nil {
-			traceid := util.RandomString(8)
-			log.Logger.Err(err).Str("traceid", traceid).Msg("can't parse input data")
-			return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-				"message": "invalid beggining time format. time format must be RFC3339.",
-				"traceid": traceid,
-			})
-		}
-	}
-	var deadline time.Time
-	if task.Deadline != "" {
-		deadline, err = time.Parse(time.RFC3339, task.Deadline)
-		if err != nil {
-			traceid := util.RandomString(8)
-			log.Logger.Err(err).Str("traceid", traceid).Msg("can't parse input data")
-			return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-				"message": "invalid deadline time format. time format must be RFC3339.",
-				"traceid": traceid,
-			})
-		}
-	}
+	beggining, _ := time.Parse(time.RFC3339, task.Beggining)
+	deadline, _ := time.Parse(time.RFC3339, task.Deadline)
 	err = s.store.CreateTaskTx(c, sqlc.CreateTaskParams{
 		ProjectID: c.Get("projectUUID").(uuid.UUID),
 		Title:     task.Title,
@@ -296,40 +274,8 @@ func (s Server) UpdateTask(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	var beggining time.Time
-	if updateTaskData.Beggining != "" {
-		beggining, err = time.Parse(time.RFC3339, updateTaskData.Beggining)
-		if err != nil {
-			traceid := util.RandomString(8)
-			log.Logger.Err(err).Str("traceid", traceid).Msg("can't parse input data")
-			return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-				"message": "invalid beggining time format. time format must be RFC3339.",
-				"traceid": traceid,
-			})
-		}
-	}
-	var deadline time.Time
-	if updateTaskData.Deadline != "" {
-		deadline, err = time.Parse(time.RFC3339, updateTaskData.Deadline)
-		if err != nil {
-			traceid := util.RandomString(8)
-			log.Logger.Err(err).Str("traceid", traceid).Msg("can't parse input data")
-			return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-				"message": "invalid deadline time format. time format must be RFC3339.",
-				"traceid": traceid,
-			})
-		}
-	}
-	taskID := c.Param("taskid")
-	taskUUID, err := uuid.FromString(taskID)
-	if err != nil {
-		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
-		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": "invalid taskID",
-			"traceid": traceid,
-		})
-	}
+	beggining, _ := time.Parse(time.RFC3339, updateTaskData.Beggining)
+	deadline, _ := time.Parse(time.RFC3339, updateTaskData.Deadline)
 	updatedTask, err := s.store.UpdateTask(ctx, sqlc.UpdateTaskParams{
 		Title:     updateTaskData.Title,
 		Info:      updateTaskData.Info,
