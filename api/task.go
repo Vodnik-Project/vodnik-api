@@ -10,6 +10,7 @@ import (
 	log "github.com/Vodnik-Project/vodnik-api/logger"
 	"github.com/Vodnik-Project/vodnik-api/util"
 	"github.com/gofrs/uuid"
+	"github.com/jackc/pgx"
 	"github.com/labstack/echo/v4"
 	"gopkg.in/validator.v2"
 )
@@ -468,6 +469,13 @@ func (s Server) AddUserToTask(c echo.Context) error {
 	})
 	if err != nil {
 		traceid := util.RandomString(8)
+		if err.(pgx.PgError).Code == "23505" {
+			log.Logger.Err(err).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusInternalServerError, echo.Map{
+				"message": "user already exist in task",
+				"traceid": traceid,
+			})
+		}
 		log.Logger.Err(err).Str("traceid", traceid).Msg("")
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"message": "an error occurred while processing your request",

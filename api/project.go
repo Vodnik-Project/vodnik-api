@@ -12,6 +12,7 @@ import (
 	"github.com/Vodnik-Project/vodnik-api/util"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
+	"github.com/jackc/pgx"
 	"github.com/labstack/echo/v4"
 	"gopkg.in/validator.v2"
 )
@@ -308,6 +309,13 @@ func (s Server) AddUserToProject(c echo.Context) error {
 	})
 	if err != nil {
 		traceid := util.RandomString(8)
+		if err.(pgx.PgError).Code == "23505" {
+			log.Logger.Err(err).Str("traceid", traceid).Msg("")
+			return c.JSON(http.StatusInternalServerError, echo.Map{
+				"message": "user already exist in project",
+				"traceid": traceid,
+			})
+		}
 		log.Logger.Err(err).Str("traceid", traceid).Msg("")
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"message": "an error occurred while processing your request",
