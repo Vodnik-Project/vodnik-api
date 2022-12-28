@@ -130,3 +130,20 @@ func (s Server) isProjectAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+func (s Server) getTaskID(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		taskID := c.Param("taskid")
+		taskUUID, err := uuid.FromString(taskID)
+		if err != nil {
+			traceid := util.RandomString(8)
+			log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
+			return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+				"message": "invalid taskID",
+				"traceid": traceid,
+			})
+		}
+		c.Set("taskUUID", taskUUID)
+		return next(c)
+	}
+}
