@@ -15,7 +15,7 @@ import (
 )
 
 type createTaskRequest struct {
-	Title     string `json:"title"`
+	Title     string `json:"title" validate:"nonzero"`
 	Info      string `json:"info"`
 	Tag       string `json:"tag"`
 	Beggining string `json:"beggining"`
@@ -47,12 +47,12 @@ func (s Server) CreateTask(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	err = util.CheckEmpty(task, []string{"Title"})
-	if err != nil {
+	if err = validator.Validate(task); err != nil {
 		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg(err.Error())
+		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid input data")
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": err.Error(),
+			"message": "invalid input data",
+			"error":   err.Error(),
 			"traceid": traceid,
 		})
 	}

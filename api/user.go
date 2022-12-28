@@ -16,12 +16,13 @@ import (
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/validator.v2"
 )
 
 type CreateUserReqParams struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"nonzero"`
+	Email    string `json:"email" validate:"nonzero,regexp=^[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*$"`
+	Password string `json:"password" validate:"nonzero"`
 	Bio      string `json:"bio"`
 }
 
@@ -37,13 +38,12 @@ func (s *Server) CreateUser(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-
-	err = util.CheckEmpty(user, []string{"Username", "Email", "Password"})
-	if err != nil {
+	if err = validator.Validate(user); err != nil {
 		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid input data")
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": err.Error(),
+			"message": "invalid input data",
+			"error":   err.Error(),
 			"traceid": traceid,
 		})
 	}

@@ -13,10 +13,11 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
+	"gopkg.in/validator.v2"
 )
 
 type projectDataRequest struct {
-	Title string `json:"title"`
+	Title string `json:"title" validate:"nonzero"`
 	Info  string `json:"info"`
 }
 
@@ -39,12 +40,12 @@ func (s Server) CreateProject(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	err = util.CheckEmpty(project, []string{"Title"})
-	if err != nil {
+	if err = validator.Validate(project); err != nil {
 		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg(err.Error())
+		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid input data")
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": err.Error(),
+			"message": "invalid input data",
+			"error":   err.Error(),
 			"traceid": traceid,
 		})
 	}

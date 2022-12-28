@@ -13,11 +13,12 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/validator.v2"
 )
 
 type loginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" validate:"nonzero,regexp=^[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*$"`
+	Password string `json:"password" validate:"nonzero"`
 }
 
 func (s Server) Login(c echo.Context) error {
@@ -32,12 +33,12 @@ func (s Server) Login(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	err = util.CheckEmpty(reqData, []string{"Email", "Password"})
-	if err != nil {
+	if err = validator.Validate(reqData); err != nil {
 		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg("")
+		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid input data")
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": err.Error(),
+			"message": "invalid input data",
+			"error":   err.Error(),
 			"traceid": traceid,
 		})
 	}
