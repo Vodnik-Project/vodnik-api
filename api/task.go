@@ -19,8 +19,8 @@ type createTaskRequest struct {
 	Title     string `json:"title" validate:"nonzero"`
 	Info      string `json:"info"`
 	Tag       string `json:"tag"`
-	Beggining string `json:"beggining"`
-	Deadline  string `json:"deadline"`
+	Beggining string `json:"beggining" validate:"regexp=(^$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$)"`
+	Deadline  string `json:"deadline" validate:"regexp=(^$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$)"`
 	Color     string `json:"color"`
 }
 
@@ -100,16 +100,7 @@ func (s Server) CreateTask(c echo.Context) error {
 
 func (s Server) GetTaskData(c echo.Context) error {
 	ctx := c.Request().Context()
-	taskID := c.Param("taskid")
-	taskUUID, err := uuid.FromString(taskID)
-	if err != nil {
-		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
-		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": "invalid taskID",
-			"traceid": traceid,
-		})
-	}
+	taskUUID := c.Get("taskUUID").(uuid.UUID)
 	task, err := s.store.GetTaskData(ctx, taskUUID)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -276,6 +267,7 @@ func (s Server) UpdateTask(c echo.Context) error {
 	}
 	beggining, _ := time.Parse(time.RFC3339, updateTaskData.Beggining)
 	deadline, _ := time.Parse(time.RFC3339, updateTaskData.Deadline)
+	taskUUID := c.Get("taskUUID").(uuid.UUID)
 	updatedTask, err := s.store.UpdateTask(ctx, sqlc.UpdateTaskParams{
 		Title:     updateTaskData.Title,
 		Info:      updateTaskData.Info,
@@ -313,17 +305,8 @@ func (s Server) UpdateTask(c echo.Context) error {
 
 func (s Server) DeleteTask(c echo.Context) error {
 	ctx := c.Request().Context()
-	taskID := c.Param("taskid")
-	taskUUID, err := uuid.FromString(taskID)
-	if err != nil {
-		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
-		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": "invalid taskID",
-			"traceid": traceid,
-		})
-	}
-	err = s.store.DeleteTask(ctx, taskUUID)
+	taskUUID := c.Get("taskUUID").(uuid.UUID)
+	err := s.store.DeleteTask(ctx, taskUUID)
 	if err != nil {
 		traceid := util.RandomString(8)
 		log.Logger.Err(err).Str("traceid", traceid).Msg("")
@@ -346,16 +329,7 @@ type usersInTaskData struct {
 
 func (s Server) GetUsersInTask(c echo.Context) error {
 	ctx := c.Request().Context()
-	taskID := c.Param("taskid")
-	taskUUID, err := uuid.FromString(taskID)
-	if err != nil {
-		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
-		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": "invalid taskID",
-			"traceid": traceid,
-		})
-	}
+	taskUUID := c.Get("taskUUID").(uuid.UUID)
 	users, err := s.store.GetUsersByTaskID(ctx, taskUUID)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -399,16 +373,7 @@ func (s Server) AddUserToTask(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	taskID := c.Param("taskid")
-	taskUUID, err := uuid.FromString(taskID)
-	if err != nil {
-		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
-		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": "invalid taskID",
-			"traceid": traceid,
-		})
-	}
+	taskUUID := c.Get("taskUUID").(uuid.UUID)
 	_, err = s.store.AddUserToTask(ctx, sqlc.AddUserToTaskParams{
 		UserID: userToAddUUID,
 		TaskID: taskUUID,
@@ -445,16 +410,7 @@ func (s Server) DeleteUserFromTask(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	taskID := c.Param("taskid")
-	taskUUID, err := uuid.FromString(taskID)
-	if err != nil {
-		traceid := util.RandomString(8)
-		log.Logger.Err(err).Str("traceid", traceid).Msg("invalid taskid")
-		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
-			"message": "invalid taskID",
-			"traceid": traceid,
-		})
-	}
+	taskUUID := c.Get("taskUUID").(uuid.UUID)
 	err = s.store.DeleteUserFromTask(ctx, sqlc.DeleteUserFromTaskParams{
 		UserID: userToDeleteUUID,
 		TaskID: taskUUID,
