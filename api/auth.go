@@ -8,6 +8,7 @@ import (
 	"github.com/Vodnik-Project/vodnik-api/auth"
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	log "github.com/Vodnik-Project/vodnik-api/logger"
+	"github.com/Vodnik-Project/vodnik-api/types"
 	"github.com/Vodnik-Project/vodnik-api/util"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
@@ -16,14 +17,9 @@ import (
 	"gopkg.in/validator.v2"
 )
 
-type loginRequest struct {
-	Email    string `json:"email" validate:"nonzero,regexp=^[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*$"`
-	Password string `json:"password" validate:"nonzero"`
-}
-
 func (s Server) Login(c echo.Context) error {
 	ctx := c.Request().Context()
-	var reqData loginRequest
+	var reqData types.LoginParams
 	err := c.Bind(&reqData)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -131,14 +127,9 @@ func (s Server) Login(c echo.Context) error {
 	})
 }
 
-type refreshTokenRequest struct {
-	RefreshToken string `json:"refresh_token"`
-	UserID       string `'json:"userid"`
-}
-
 func (s Server) Refresh_token(c echo.Context) error {
 	ctx := c.Request().Context()
-	var refreshToken refreshTokenRequest
+	var refreshToken types.RefreshTokenParams
 	err := c.Bind(&refreshToken)
 	if err != nil {
 		traceid := util.RandomString(8)

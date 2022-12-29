@@ -9,6 +9,7 @@ import (
 	"github.com/Vodnik-Project/vodnik-api/auth"
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	log "github.com/Vodnik-Project/vodnik-api/logger"
+	"github.com/Vodnik-Project/vodnik-api/types"
 	"github.com/Vodnik-Project/vodnik-api/util"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
@@ -17,21 +18,8 @@ import (
 	"gopkg.in/validator.v2"
 )
 
-type projectDataRequest struct {
-	Title string `json:"title" validate:"nonzero"`
-	Info  string `json:"info"`
-}
-
-type projectDataResponse struct {
-	ProjectID string `json:"project_id"`
-	Title     string `json:"title"`
-	Info      string `json:"info"`
-	OwnerID   string `json:"owner_id"`
-	CreatedAt string `json:"created_at"`
-}
-
 func (s Server) CreateProject(c echo.Context) error {
-	var project projectDataRequest
+	var project types.CreateProjectParams
 	err := c.Bind(&project)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -74,7 +62,7 @@ func (s Server) CreateProject(c echo.Context) error {
 		})
 	}
 	createdProjectData := c.Get("project").(sqlc.Project)
-	responseData := projectDataResponse{
+	responseData := types.ProjectData{
 		ProjectID: createdProjectData.ProjectID.String(),
 		Title:     createdProjectData.Title,
 		Info:      createdProjectData.Info.String,
@@ -116,9 +104,9 @@ func (s Server) GetUserProjects(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	var responseData []projectDataResponse
+	var responseData []types.ProjectData
 	for _, p := range projects {
-		responseData = append(responseData, projectDataResponse{
+		responseData = append(responseData, types.ProjectData{
 			ProjectID: p.ProjectID.String(),
 			Title:     p.Title,
 			Info:      p.Info.String,
@@ -151,7 +139,7 @@ func (s Server) GetProjectData(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	responseData := projectDataResponse{
+	responseData := types.ProjectData{
 		ProjectID: project.ProjectID.String(),
 		Title:     project.Title,
 		Info:      project.Info.String,
@@ -164,15 +152,9 @@ func (s Server) GetProjectData(c echo.Context) error {
 	})
 }
 
-type updateProjectRequest struct {
-	Title   string `json:"title"`
-	Info    string `json:"info"`
-	OwnerID string `json:"owner_id"`
-}
-
 func (s Server) UpdateProject(c echo.Context) error {
 	ctx := c.Request().Context()
-	var updateProjectData updateProjectRequest
+	var updateProjectData types.UpdateProjectParams
 	err := c.Bind(&updateProjectData)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -182,7 +164,7 @@ func (s Server) UpdateProject(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	if updateProjectData == (updateProjectRequest{}) {
+	if updateProjectData == (types.UpdateProjectParams{}) {
 		traceid := util.RandomString(8)
 		log.Logger.Err(errors.New("input data is empty")).Str("traceid", traceid).Msg("")
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
@@ -225,7 +207,7 @@ func (s Server) UpdateProject(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	responseData := projectDataResponse{
+	responseData := types.ProjectData{
 		ProjectID: updatedProject.ProjectID.String(),
 		Title:     updatedProject.Title,
 		Info:      updatedProject.Info.String,
@@ -254,14 +236,6 @@ func (s Server) DeleteProject(c echo.Context) error {
 	})
 }
 
-type usersInProjectResponse struct {
-	UserID         string `json:"userid"`
-	Username       string `json:"username"`
-	Bio            string `json:"bio"`
-	AddedToProject string `json:"added_to_project"`
-	Admin          bool   `json:"admin"`
-}
-
 func (s Server) GetUsersInProject(c echo.Context) error {
 	ctx := c.Request().Context()
 	projectUUID := c.Get("projectUUID").(uuid.UUID)
@@ -274,9 +248,9 @@ func (s Server) GetUsersInProject(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	var responseData []usersInProjectResponse
+	var responseData []types.UsersInProjectData
 	for _, i := range usersInProject {
-		responseData = append(responseData, usersInProjectResponse{
+		responseData = append(responseData, types.UsersInProjectData{
 			UserID:         i.UserID.String(),
 			Username:       i.Username,
 			Bio:            i.Bio.String,

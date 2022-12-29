@@ -8,6 +8,7 @@ import (
 
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	log "github.com/Vodnik-Project/vodnik-api/logger"
+	"github.com/Vodnik-Project/vodnik-api/types"
 	"github.com/Vodnik-Project/vodnik-api/util"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx"
@@ -15,30 +16,8 @@ import (
 	"gopkg.in/validator.v2"
 )
 
-type createTaskRequest struct {
-	Title     string `json:"title" validate:"nonzero"`
-	Info      string `json:"info"`
-	Tag       string `json:"tag"`
-	Beggining string `json:"beggining" validate:"regexp=(^$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$)"`
-	Deadline  string `json:"deadline" validate:"regexp=(^$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$)"`
-	Color     string `json:"color"`
-}
-
-type TaskDataResponse struct {
-	TaskID    string `json:"task_id"`
-	ProjectID string `json:"project_id"`
-	Title     string `json:"title"`
-	Info      string `json:"info"`
-	Tag       string `json:"tag"`
-	CreatedBy string `json:"created_by"`
-	CreatedAt string `json:"created_at"`
-	Beggining string `json:"beggining"`
-	Deadline  string `json:"deadline"`
-	Color     string `json:"color"`
-}
-
 func (s Server) CreateTask(c echo.Context) error {
-	var task createTaskRequest
+	var task types.CreateTaskParams
 	err := c.Bind(&task)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -79,7 +58,7 @@ func (s Server) CreateTask(c echo.Context) error {
 		})
 	}
 	createdTask := c.Get("task").(sqlc.Task)
-	responseData := TaskDataResponse{
+	responseData := types.TaskData{
 		TaskID:    createdTask.TaskID.String(),
 		ProjectID: createdTask.ProjectID.String(),
 		Title:     createdTask.Title,
@@ -117,7 +96,7 @@ func (s Server) GetTaskData(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	responseData := TaskDataResponse{
+	responseData := types.TaskData{
 		TaskID:    task.TaskID.String(),
 		ProjectID: task.ProjectID.String(),
 		Title:     task.Title,
@@ -135,26 +114,9 @@ func (s Server) GetTaskData(c echo.Context) error {
 	})
 }
 
-type getTaskRequest struct {
-	Title          string `json:"title"`
-	Info           string `json:"info"`
-	Tag            string `json:"tag"`
-	CreatedBy      string `json:"created_by"`
-	CreatedAtFrom  string `json:"created_at_from" validate:"regexp=(^$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$)"`
-	CreatedAtUntil string `json:"created_at_until" validate:"regexp=(^$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$)"`
-	BegginingFrom  string `json:"beggining_from" validate:"regexp=(^$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$)"`
-	BegginingUntil string `json:"beggining_until" validate:"regexp=(^$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$)"`
-	DeadlineFrom   string `json:"deadline_from" validate:"regexp=(^$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$)"`
-	DeadlineUntil  string `json:"deadline_until" validate:"regexp=(^$|^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$)"`
-	Sortdirection  string `json:"sort_direction" validate:"regexp=(^$|asc|desc)"`
-	SortBy         string `json:"sort_by" validate:"regexp=(^$|beggining|deadline|created_at)"`
-	Limit          int32  `json:"limit"`
-	Page           int32  `json:"page"`
-}
-
 func (s Server) GetTasksByProjectID(c echo.Context) error {
 	ctx := c.Request().Context()
-	var taskRequest getTaskRequest
+	var taskRequest types.GetTaskParams
 	err := c.Bind(&taskRequest)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -223,9 +185,9 @@ func (s Server) GetTasksByProjectID(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	var responseData []TaskDataResponse
+	var responseData []types.TaskData
 	for _, j := range projects {
-		responseData = append(responseData, TaskDataResponse{
+		responseData = append(responseData, types.TaskData{
 			TaskID:    j.TaskID.String(),
 			ProjectID: j.ProjectID.String(),
 			Title:     j.Title,
@@ -247,7 +209,7 @@ func (s Server) GetTasksByProjectID(c echo.Context) error {
 
 func (s Server) UpdateTask(c echo.Context) error {
 	ctx := c.Request().Context()
-	var updateTaskData createTaskRequest
+	var updateTaskData types.CreateTaskParams
 	err := c.Bind(&updateTaskData)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -257,7 +219,7 @@ func (s Server) UpdateTask(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	if updateTaskData == (createTaskRequest{}) {
+	if updateTaskData == (types.CreateTaskParams{}) {
 		traceid := util.RandomString(8)
 		log.Logger.Err(errors.New("input data is empty")).Str("traceid", traceid).Msg("")
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
@@ -285,7 +247,7 @@ func (s Server) UpdateTask(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	responseData := TaskDataResponse{
+	responseData := types.TaskData{
 		TaskID:    updatedTask.TaskID.String(),
 		ProjectID: updatedTask.ProjectID.String(),
 		Title:     updatedTask.Title,
@@ -320,13 +282,6 @@ func (s Server) DeleteTask(c echo.Context) error {
 	})
 }
 
-type usersInTaskData struct {
-	UserID   string `json:"userid"`
-	Username string `json:"username"`
-	Bio      string `json:"bio"`
-	AddedAt  string `json:"added_at"`
-}
-
 func (s Server) GetUsersInTask(c echo.Context) error {
 	ctx := c.Request().Context()
 	taskUUID := c.Get("taskUUID").(uuid.UUID)
@@ -346,9 +301,9 @@ func (s Server) GetUsersInTask(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	var responseData []usersInTaskData
+	var responseData []types.UsersInTaskData
 	for _, i := range users {
-		responseData = append(responseData, usersInTaskData{
+		responseData = append(responseData, types.UsersInTaskData{
 			UserID:   i.UserID.String(),
 			Username: i.Username,
 			Bio:      i.Bio.String,

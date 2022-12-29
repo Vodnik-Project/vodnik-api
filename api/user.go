@@ -9,6 +9,7 @@ import (
 	"github.com/Vodnik-Project/vodnik-api/auth"
 	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	log "github.com/Vodnik-Project/vodnik-api/logger"
+	"github.com/Vodnik-Project/vodnik-api/types"
 	"github.com/Vodnik-Project/vodnik-api/util"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
@@ -19,16 +20,9 @@ import (
 	"gopkg.in/validator.v2"
 )
 
-type CreateUserReqParams struct {
-	Username string `json:"username" validate:"nonzero"`
-	Email    string `json:"email" validate:"nonzero,regexp=^[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(?:.[a-zA-Z0-9]+)*$"`
-	Password string `json:"password" validate:"nonzero"`
-	Bio      string `json:"bio"`
-}
-
 func (s *Server) CreateUser(c echo.Context) error {
 	ctx := c.Request().Context()
-	var user CreateUserReqParams
+	var user types.CreateUserParams
 	err := c.Bind(&user)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -87,7 +81,7 @@ func (s *Server) CreateUser(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	responseData := userDataResponse{
+	responseData := types.UserData{
 		UserID:   createdUser.UserID.String(),
 		Username: createdUser.Username,
 		Email:    createdUser.Email,
@@ -99,14 +93,6 @@ func (s *Server) CreateUser(c echo.Context) error {
 		"message": "user created successfully",
 		"user":    responseData,
 	})
-}
-
-type userDataResponse struct {
-	UserID   string `json:"userid"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Bio      string `json:"bio"`
-	JoinedAt string `json:"joinedAt"`
 }
 
 func (s *Server) GetUserData(c echo.Context) error {
@@ -137,7 +123,7 @@ func (s *Server) GetUserData(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	responseData := userDataResponse{
+	responseData := types.UserData{
 		UserID:   userData.UserID.String(),
 		Username: userData.Username,
 		Email:    userData.Email,
@@ -148,13 +134,6 @@ func (s *Server) GetUserData(c echo.Context) error {
 		"message": "user found",
 		"user":    responseData,
 	})
-}
-
-type updateUserRequest struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Bio      string `json:"bio"`
 }
 
 func (s *Server) UpdateUser(c echo.Context) error {
@@ -169,7 +148,7 @@ func (s *Server) UpdateUser(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	var updateData updateUserRequest
+	var updateData types.UpdateUserParams
 	err = c.Bind(&updateData)
 	if err != nil {
 		traceid := util.RandomString(8)
@@ -179,7 +158,7 @@ func (s *Server) UpdateUser(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	if updateData == (updateUserRequest{}) {
+	if updateData == (types.UpdateUserParams{}) {
 		traceid := util.RandomString(8)
 		log.Logger.Err(errors.New("input data is empty")).Str("traceid", traceid).Msg("")
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
@@ -232,7 +211,7 @@ func (s *Server) UpdateUser(c echo.Context) error {
 			"traceid": traceid,
 		})
 	}
-	responseData := userDataResponse{
+	responseData := types.UserData{
 		UserID:   updatedUser.UserID.String(),
 		Username: updatedUser.Username,
 		Email:    updatedUser.Email,
