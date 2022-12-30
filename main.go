@@ -3,11 +3,11 @@ package main
 import (
 	"database/sql"
 
-	"github.com/Vodnik-Project/vodnik-api/api"
-	"github.com/Vodnik-Project/vodnik-api/auth"
-	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
-	log "github.com/Vodnik-Project/vodnik-api/logger"
-	"github.com/Vodnik-Project/vodnik-api/util"
+	"github.com/raman-vhd/task-management-api/api"
+	"github.com/raman-vhd/task-management-api/auth"
+	"github.com/raman-vhd/task-management-api/db/sqlc"
+	log "github.com/raman-vhd/task-management-api/logger"
+	"github.com/raman-vhd/task-management-api/util"
 )
 
 func main() {

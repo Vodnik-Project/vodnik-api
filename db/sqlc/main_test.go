@@ -5,8 +5,8 @@ import (
 	"log"
 	"testing"
 
-	"github.com/Vodnik-Project/vodnik-api/util"
 	_ "github.com/jackc/pgx/stdlib"
+	"github.com/raman-vhd/task-management-api/util"
 )
 
 var testDB *sql.DB

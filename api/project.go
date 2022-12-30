@@ -6,15 +6,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Vodnik-Project/vodnik-api/auth"
-	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
-	log "github.com/Vodnik-Project/vodnik-api/logger"
-	"github.com/Vodnik-Project/vodnik-api/types"
-	"github.com/Vodnik-Project/vodnik-api/util"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
 	"github.com/jackc/pgx"
 	"github.com/labstack/echo/v4"
+	"github.com/raman-vhd/task-management-api/auth"
+	"github.com/raman-vhd/task-management-api/db/sqlc"
+	log "github.com/raman-vhd/task-management-api/logger"
+	"github.com/raman-vhd/task-management-api/types"
+	"github.com/raman-vhd/task-management-api/util"
 	"gopkg.in/validator.v2"
 )
 

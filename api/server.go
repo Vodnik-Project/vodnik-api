@@ -1,10 +1,10 @@
 package api
 
 import (
-	"github.com/Vodnik-Project/vodnik-api/auth"
-	"github.com/Vodnik-Project/vodnik-api/db/sqlc"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/raman-vhd/task-management-api/auth"
+	"github.com/raman-vhd/task-management-api/db/sqlc"
 )
 
 type Server struct {

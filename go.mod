@@ -1,4 +1,4 @@
-module github.com/Vodnik-Project/vodnik-api
+module github.com/raman-vhd/task-management-api
 
 go 1.19
 

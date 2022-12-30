@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/Vodnik-Project/vodnik-api/util"
+	"github.com/raman-vhd/task-management-api/util"
 	"github.com/stretchr/testify/require"
 )
 
