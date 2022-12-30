@@ -1,2 +1,1 @@
-# vodnik-api
-Task management system
+# Task Management API
