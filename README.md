@@ -1,4 +1,7 @@
 # Task Management API
+User can create projects and define tasks in every project.
+
+# Installation
 Api uses postgresql as database. consider installing it.
 
 Set environment variables. Ex:
@@ -24,3 +27,15 @@ Ready to go:
 ```
 go run main.go
 ```
+
+# Technologies & Tools
+- PostgreSQL
+- [Echo](https://github.com/labstack/echo)
+- [Zerolog](https://github.com/rs/zerolog)
+- JWT
+- [Sqlc](https://github.com/kyleconroy/sqlc)
+
+# To-Do
+- [ ] Dockerizing
+- [ ] Writing API tests
+- [ ] Notification System
