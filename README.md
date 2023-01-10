@@ -37,5 +37,5 @@ go run main.go
 
 # To-Do
 - [ ] Dockerizing
-- [ ] Writing API tests
+- [ ] API Tests
 - [ ] Notification System
